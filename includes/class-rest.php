@@ -196,15 +196,15 @@ class OIS_REST {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function store( $req ) {
-		$id   = (int) $req->get_param( 'attachment_id' );
-		$size = sanitize_text_field( (string) $req->get_param( 'size' ) );
-		$kind = sanitize_key( (string) $req->get_param( 'kind' ) );
+		$id     = (int) $req->get_param( 'attachment_id' );
+		$size   = sanitize_text_field( (string) $req->get_param( 'size' ) );
+		$format = sanitize_key( (string) $req->get_param( 'format' ) );
 
 		if ( ! wp_attachment_is_image( $id ) ) {
 			return new WP_Error( 'ois_bad_id', 'Not an image attachment.', array( 'status' => 400 ) );
 		}
-		if ( ! in_array( $kind, array( 'orig', 'webp', 'avif' ), true ) ) {
-			return new WP_Error( 'ois_bad_kind', 'Invalid kind.', array( 'status' => 400 ) );
+		if ( ! in_array( $format, array( 'jpeg', 'png', 'webp', 'avif' ), true ) ) {
+			return new WP_Error( 'ois_bad_format', 'Invalid format.', array( 'status' => 400 ) );
 		}
 		$files = $req->get_file_params();
 		if ( empty( $files['file']['tmp_name'] ) ) {
@@ -214,7 +214,7 @@ class OIS_REST {
 		$result = $this->optimizer->store(
 			$id,
 			$size,
-			$kind,
+			$format,
 			$files['file']['tmp_name'],
 			(int) $req->get_param( 'width' ),
 			(int) $req->get_param( 'height' ),

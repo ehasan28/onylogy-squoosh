@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Onylogy Image Squeeze
  * Plugin URI:        https://github.com/ehasan28/onylogy-image-squeeze
- * Description:        Automatically compress, resize and convert your Media Library to WebP/AVIF at Squoosh-level quality. All processing runs in your browser via WebAssembly — no server image library, no cloud, no per-image cost.
- * Version:           2.0.0
+ * Description:        Automatically compress, resize and convert your Media Library to WebP/AVIF at Squoosh-level quality — in place, so every theme and page builder serves the optimized file automatically. All processing runs in your browser via WebAssembly — no server image library, no cloud, no per-image cost.
+ * Version:           2.1.0
  * Requires at least: 6.6
  * Requires PHP:      7.4
  * Author:            Ehasanul Haque
@@ -19,7 +19,7 @@
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-define( 'OIS_VERSION', '2.0.0' );
+define( 'OIS_VERSION', '2.1.0' );
 define( 'OIS_FILE', __FILE__ );
 define( 'OIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OIS_URL', plugin_dir_url( __FILE__ ) );

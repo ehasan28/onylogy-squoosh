@@ -15,7 +15,6 @@ export default function Settings( { onSaved } ) {
 		avif: !! initial.avif,
 		resizeMax: initial.resizeMax ?? 2560,
 		backup: initial.backup !== false,
-		serve: initial.serve !== false,
 		autoOnUpload: initial.autoOnUpload !== false,
 	} );
 	const [ status, setStatus ] = useState( '' );
@@ -63,8 +62,11 @@ export default function Settings( { onSaved } ) {
 						checked={ form.webp }
 						onChange={ ( e ) => set( { webp: e.target.checked } ) }
 					/>
-					{ __( 'Create & serve WebP versions', 'onylogy-image-squeeze' ) }
+					{ __( 'Allow converting to WebP', 'onylogy-image-squeeze' ) }
 				</label>
+				<p className="ois-set-hint">
+					{ __( 'When WebP comes out smaller, it replaces the image in your Media Library — so your theme, page builder and everything else serves it automatically. No front-end setup needed.', 'onylogy-image-squeeze' ) }
+				</p>
 			</div>
 
 			<div className="ois-set-row ois-set-row--check">
@@ -74,18 +76,7 @@ export default function Settings( { onSaved } ) {
 						checked={ form.avif }
 						onChange={ ( e ) => set( { avif: e.target.checked } ) }
 					/>
-					{ __( 'Also create & serve AVIF versions (slower to encode)', 'onylogy-image-squeeze' ) }
-				</label>
-			</div>
-
-			<div className="ois-set-row ois-set-row--check">
-				<label>
-					<input
-						type="checkbox"
-						checked={ form.serve }
-						onChange={ ( e ) => set( { serve: e.target.checked } ) }
-					/>
-					{ __( 'Serve next-gen formats to supporting browsers (with fallback)', 'onylogy-image-squeeze' ) }
+					{ __( 'Also allow AVIF (slower to encode)', 'onylogy-image-squeeze' ) }
 				</label>
 			</div>
 
@@ -125,6 +116,9 @@ export default function Settings( { onSaved } ) {
 					/>
 					{ __( 'Keep a backup of originals so I can restore', 'onylogy-image-squeeze' ) }
 				</label>
+				<p className="ois-set-hint">
+					{ __( 'Optimizing replaces the file in your Media Library (e.g. photo.png becomes photo.webp). The backup is what lets you undo that — without it, "Restore original" has nothing to restore from.', 'onylogy-image-squeeze' ) }
+				</p>
 			</div>
 
 			<div className="ois-set-actions">

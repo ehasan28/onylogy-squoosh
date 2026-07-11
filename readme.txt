@@ -4,7 +4,7 @@ Tags: image optimization, compress images, webp, avif, lazy optimize
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,16 +18,18 @@ That means Squoosh-level quality (mozjpeg, oxipng, WebP, AVIF) that works the sa
 
 **What it does**
 
-* **Auto-optimize on upload** — new images are compressed (and WebP/AVIF versions created) automatically.
+* **Auto-optimize on upload** — new images are compressed and, when it's a win, converted to WebP/AVIF automatically.
 * **Bulk-optimize your existing library** — one click processes every image, every thumbnail size, with a live progress bar and a running "total saved" counter.
 * **Resize oversized images** — downscale huge uploads to a sensible max width (2560px by default). Never upscales.
-* **Convert & serve WebP/AVIF** — next-gen copies are generated and served to supporting browsers automatically via `<picture>`, with a seamless fallback to the original for browsers that don't support them. Works on Apache *and* nginx — no `.htaccess` needed.
-* **Smart & non-destructive** — a file is only replaced when the new version is actually smaller, and a next-gen sibling is only kept when it beats the original. Every original is backed up so you can **Restore** any image with one click.
+* **Converts in place, works with every page builder** — when WebP/AVIF wins, it *replaces* the file in your Media Library (e.g. `photo.png` becomes `photo.webp`). There's no separate "next-gen sibling" file and no front-end rewriting required — your theme, Elementor, Divi, or any other page builder just serves whatever's in the Media Library, automatically.
+* **Smart & non-destructive** — a size is only replaced when the new version is actually smaller. Every original is backed up before the first change, so you can **Restore** any image with one click.
 * **100% private & free** — no external API, no per-image fees, nothing uploaded anywhere.
 
 **How it works (the honest version)**
 
-Bulk-optimizing a large *existing* library runs in your browser, so keep the tab open until it finishes (exactly like Smush's Bulk Smush). New uploads are optimized instantly. The server only stores the finished files, backs up originals, and serves the next-gen formats — it never encodes an image, which is why it behaves identically on every host.
+Bulk-optimizing a large *existing* library runs in your browser, so keep the tab open until it finishes (exactly like Smush's Bulk Smush). New uploads are optimized instantly. The server never encodes an image — it only backs up the original, then writes whichever result the browser decided is smallest as the attachment's own file (updating its filename, MIME type, and WordPress metadata to match). That's why it behaves identically on every host, and why every consumer of the Media Library — theme, block editor, or page builder — sees the optimized file with zero extra configuration.
+
+**A note on browser support:** replacing an original with WebP/AVIF means very old browsers (IE11, iOS ≤ 13 Safari) would see a broken image if they ever request that file directly. This is an intentionally small, shrinking slice of traffic in 2026; if you need to guarantee support for those browsers specifically, turn off WebP/AVIF conversion in Settings and Image Squeeze will still recompress in the original format.
 
 == Installation ==
 
@@ -47,13 +49,21 @@ No. The plugin doesn't rely on any server-side image library to compress or conv
 
 = Can I undo it? =
 
-Yes. Every original is backed up. Use the **Restore original** action on any image, and the original file (and all its thumbnails) are put back.
+Yes. Every original is backed up *before* the first change to that image, which is exactly why the backup exists — without it, "Restore original" would have nothing to restore. Use the **Restore original** action on any image, and the original file, its original filename/format, and all its thumbnails are put back exactly as they were.
+
+= Why does my PNG show up as a .webp file in the Media Library? =
+
+That's the point, not a bug: when converting to WebP makes the file smaller, Image Squeeze replaces the attachment's own file (and updates its WordPress metadata to match) rather than creating a separate "sibling" file next to it. That's what makes it work automatically with page builders like Elementor or Divi — they just render whatever file the Media Library says is there.
 
 = Why does the big bulk run need the tab open? =
 
 Because the compression happens in your browser, not on a remote server. This is the same trade-off as Smush's Bulk Smush — and it's what keeps the plugin free, private, and host-independent.
 
 == Changelog ==
+
+= 2.1.0 =
+* Images are now optimized **in place**: when WebP/AVIF wins, it replaces the attachment's own file (filename, MIME type, and metadata all updated) instead of being stored as a separate sibling file. Fixes next-gen formats not appearing for images inserted by page builders (Elementor, Divi, etc.), since there's no more front-end markup rewriting involved.
+* Restore now reverts the exact original filename, format, and metadata, not just the bytes.
 
 = 2.0.0 =
 * Rebuilt as a full Media Library optimizer (like Smush/ShortPixel) — the previous manual convert-and-download tool is replaced.

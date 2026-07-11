@@ -3,7 +3,8 @@
  *
  * A Media Library optimizer: a bulk dashboard (savings summary + one-click
  * "Optimize All") and a settings panel. All compression happens in-browser via
- * the WASM worker; the server only stores results and serves next-gen formats.
+ * the WASM worker; the server only replaces each attachment's own file with
+ * the winning result — no separate "sibling" files, no front-end rewriting.
  */
 
 import { useState } from '@wordpress/element';

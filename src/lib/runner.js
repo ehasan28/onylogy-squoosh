@@ -53,11 +53,15 @@ export function getStats() {
 }
 
 /**
- * Process a single size file: fetch, optimize, store each output.
+ * Process a single size file: fetch, optimize, and REPLACE that size file in
+ * place with whichever candidate (recompressed original, WebP, or AVIF) comes
+ * out smallest. There is no "served format" decision at request time — this
+ * attachment's own file, in the Media Library, becomes the winning format, so
+ * the theme, page builders and WordPress core all pick it up automatically.
  *
  * @param {number} attachmentId Attachment ID.
  * @param {Object} file         { size, url, format }.
- * @return {Promise<number>} Bytes saved on the original-format file.
+ * @return {Promise<number>} Bytes saved for this size file.
  */
 async function processFile( attachmentId, file ) {
 	const s = settings();
@@ -80,55 +84,39 @@ async function processFile( attachmentId, file ) {
 		targets: targetsFor( file.format ),
 	} );
 
-	const byKey = {};
-	outputs.forEach( ( o ) => ( byKey[ o.key ] = o ) );
+	let winner = null;
+	for ( const out of outputs ) {
+		if ( out.buffer.byteLength < originalSize && ( ! winner || out.buffer.byteLength < winner.buffer.byteLength ) ) {
+			winner = out;
+		}
+	}
 
-	// The original-format file is only replaced if the re-encode is smaller;
-	// otherwise the served original stays as-is.
-	const origOut = byKey.orig;
-	const origBeats = origOut && origOut.buffer.byteLength < originalSize;
-	const servedOrig = origBeats ? origOut.buffer.byteLength : originalSize;
-
-	const send = async ( out, kind ) => {
-		const form = new FormData();
-		form.append( 'attachment_id', String( attachmentId ) );
-		form.append( 'size', file.size );
-		form.append( 'kind', kind );
-		form.append( 'width', String( out.width ) );
-		form.append( 'height', String( out.height ) );
-		form.append( 'original_size', String( originalSize ) );
-		form.append(
-			'file',
-			new Blob( [ out.buffer ], { type: 'application/octet-stream' } ),
-			file.size + '.' + out.format
-		);
-		await apiFetch( { path: NS + '/store', method: 'POST', body: form } );
-	};
-
-	// Replace the original only when it's actually smaller.
-	if ( origBeats ) {
-		await send( origOut, 'orig' );
-	} else if ( origOut ) {
-		// Record the original size so savings math is correct even when we skip.
+	if ( ! winner ) {
+		// Nothing beat the original — leave the file untouched, but still
+		// record its size so the savings math stays correct.
 		await apiFetch( {
 			path: NS + '/record',
 			method: 'POST',
 			data: { attachment_id: attachmentId, size: file.size, original_size: originalSize },
 		} );
+		return 0;
 	}
 
-	// Store a next-gen sibling only if it beats the served original-format file.
-	let bestServed = servedOrig;
-	for ( const kind of [ 'webp', 'avif' ] ) {
-		const out = byKey[ kind ];
-		if ( out && out.buffer.byteLength < servedOrig ) {
-			// eslint-disable-next-line no-await-in-loop
-			await send( out, kind );
-			bestServed = Math.min( bestServed, out.buffer.byteLength );
-		}
-	}
+	const form = new FormData();
+	form.append( 'attachment_id', String( attachmentId ) );
+	form.append( 'size', file.size );
+	form.append( 'format', winner.format );
+	form.append( 'width', String( winner.width ) );
+	form.append( 'height', String( winner.height ) );
+	form.append( 'original_size', String( originalSize ) );
+	form.append(
+		'file',
+		new Blob( [ winner.buffer ], { type: 'application/octet-stream' } ),
+		file.size + '.' + winner.format
+	);
+	await apiFetch( { path: NS + '/store', method: 'POST', body: form } );
 
-	return Math.max( 0, originalSize - bestServed );
+	return Math.max( 0, originalSize - winner.buffer.byteLength );
 }
 
 /**

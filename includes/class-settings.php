@@ -31,9 +31,8 @@ class OIS_Settings {
 	public static function defaults() {
 		return array(
 			'quality'      => 80,      // JPEG/WebP quality 40-100.
-			'webp'         => 1,       // Create & serve WebP.
-			'avif'         => 0,       // Create & serve AVIF (slower, opt-in).
-			'serve'        => 1,       // Rewrite front-end markup to serve next-gen.
+			'webp'         => 1,       // Allow converting to WebP when it wins.
+			'avif'         => 0,       // Also allow AVIF (slower, opt-in).
 			'autoOnUpload' => 1,       // Optimize new uploads automatically.
 			'resizeMax'    => 2560,    // Max full-size dimension in px (0 = off).
 			'backup'       => 1,       // Keep restorable backups of originals.
@@ -81,7 +80,7 @@ class OIS_Settings {
 		if ( isset( $input['quality'] ) ) {
 			$out['quality'] = max( 40, min( 100, absint( $input['quality'] ) ) );
 		}
-		foreach ( array( 'webp', 'avif', 'serve', 'autoOnUpload', 'backup' ) as $flag ) {
+		foreach ( array( 'webp', 'avif', 'autoOnUpload', 'backup' ) as $flag ) {
 			if ( array_key_exists( $flag, $input ) ) {
 				$out[ $flag ] = ! empty( $input[ $flag ] ) && 'false' !== $input[ $flag ] ? 1 : 0;
 			}

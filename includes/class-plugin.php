@@ -70,7 +70,6 @@ final class OIS_Plugin {
 		require_once $inc . 'class-attachments.php';
 		require_once $inc . 'class-optimizer.php';
 		require_once $inc . 'class-rest.php';
-		require_once $inc . 'class-serve.php';
 
 		if ( is_admin() ) {
 			require_once OIS_DIR . 'admin/class-admin-page.php';
@@ -86,7 +85,6 @@ final class OIS_Plugin {
 		$this->optimizer   = new OIS_Optimizer( $this->settings, $this->attachments );
 
 		new OIS_REST( $this->settings, $this->attachments, $this->optimizer );
-		new OIS_Serve( $this->settings ); // self-gates to the front end.
 
 		if ( is_admin() ) {
 			new OIS_Admin_Page( $this->settings, $this->attachments );

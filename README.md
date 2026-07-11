@@ -6,24 +6,27 @@ By **Ehasanul Haque** ([Onylogy Studio](https://onylogy.com)) · GPL-2.0-or-late
 
 ## Features
 
-- **Auto-optimize on upload** — new images are compressed and given WebP/AVIF versions automatically.
+- **Auto-optimize on upload** — new images are compressed and, when it's a win, converted to WebP/AVIF automatically.
 - **Bulk-optimize the existing library** — one click processes every image and every thumbnail size, with a live progress bar and a running "total saved" counter.
 - **Resize oversized images** — downscale huge uploads to a max width (2560px default). Never upscales.
-- **Convert & serve WebP/AVIF** — next-gen copies are generated and served to supporting browsers via `<picture>` with automatic fallback. Works on Apache **and** nginx (no `.htaccess`, no `Vary` header).
-- **Smart & non-destructive** — a file is only replaced when the new version is smaller, and a next-gen sibling is only kept when it beats the original. Every original is backed up; **Restore** any image in one click (also available as a Media Library row action).
+- **Converts in place, works with every page builder** — when WebP/AVIF wins, it *replaces* the attachment's own file (e.g. `photo.png` → `photo.webp`), updating its filename, MIME type, and WordPress metadata. There's no separate "sibling" file and no front-end markup rewriting — the theme, block editor, Elementor, Divi, or anything else that reads the Media Library just serves the optimized file directly.
+- **Smart & non-destructive** — a size is only replaced when the new version is actually smaller. Every original is backed up before the first change; **Restore** any image in one click (also available as a Media Library row action).
 - **100% private & free** — no external API, no keys, no fees.
 
 ## How it works
 
-The server **never encodes an image**. All decode/resize/flatten/encode happens in a Web Worker in the browser using the [`@jsquash`](https://github.com/jamsinclair/jSquash) WebAssembly codecs (derived from Squoosh). WordPress-side PHP only:
+The server **never encodes an image**. All decode/resize/flatten/encode happens in a Web Worker in the browser using the [`@jsquash`](https://github.com/jamsinclair/jSquash) WebAssembly codecs (derived from Squoosh). The browser picks whichever candidate (recompressed original, WebP, or AVIF) is smallest and sends only that one back. WordPress-side PHP only:
 
 - flags every upload as pending (`wp_generate_attachment_metadata`) so nothing is missed,
 - applies the resize threshold (`big_image_size_threshold`),
-- backs up originals and writes the finished bytes / next-gen siblings to `uploads/`,
+- backs up every original file + its metadata/MIME snapshot before the first change,
+- writes the winning result as the attachment's own file — renaming it and updating `_wp_attached_file`, `post_mime_type`, and `_wp_attachment_metadata` (per-size `file`/`mime-type`) so WordPress core treats it as the real file, not an extra asset,
 - records savings in the `_ois_data` post meta,
-- rewrites front-end `<img>` tags into `<picture>` to serve WebP/AVIF.
+- on Restore, deletes the current files, copies the backups back under their original names, and restores the metadata/MIME snapshot verbatim.
 
-Because the encoding is host-independent WASM, it behaves the same everywhere. Bulk-optimizing a large **existing** library runs in your browser, so keep the tab open until it finishes (the same trade-off as Smush's Bulk Smush). New uploads are optimized instantly.
+Because the encoding is host-independent WASM and the result becomes the attachment's actual file, it behaves the same everywhere and needs zero front-end integration. Bulk-optimizing a large **existing** library runs in your browser, so keep the tab open until it finishes (the same trade-off as Smush's Bulk Smush). New uploads are optimized instantly.
+
+**Trade-off:** replacing a PNG/JPEG with WebP/AVIF means very old browsers (IE11, iOS ≤ 13 Safari) would see a broken image if they request that file directly — a small and shrinking slice of traffic. Turn off WebP/AVIF in Settings if you need to guarantee support for them; Image Squeeze will still recompress in the original format.
 
 ## Development
 
@@ -44,9 +47,8 @@ onylogy-image-squeeze/
 │   ├── class-plugin.php        # bootstrap + row actions
 │   ├── class-settings.php      # single-option settings store
 │   ├── class-attachments.php   # enumerate size files + savings records
-│   ├── class-optimizer.php     # backups, file writes, restore, upload hooks
-│   ├── class-rest.php          # ois/v1 REST API (queue/store/complete/restore/stats/settings)
-│   └── class-serve.php         # front-end <picture> WebP/AVIF rewriting
+│   ├── class-optimizer.php     # backup/snapshot, in-place file replace, restore, upload hooks
+│   └── class-rest.php          # ois/v1 REST API (queue/store/complete/restore/stats/settings)
 ├── admin/class-admin-page.php  # dashboard + asset enqueue
 ├── src/                        # JS source (built by wp-scripts)
 │   ├── index.js / app.js       # dashboard app

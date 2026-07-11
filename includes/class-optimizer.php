@@ -4,7 +4,10 @@
  * image — the browser sends already-optimized bytes. This class only:
  *   - flags new uploads as pending (so nothing is missed),
  *   - applies the resize-on-upload threshold via core,
- *   - backs up originals, writes optimized bytes / next-gen siblings to disk,
+ *   - backs up originals, then REPLACES the attachment's own file in place
+ *     (so Media Library, theme, and page builders all serve the optimized /
+ *     next-gen file automatically — no separate "sibling" file, no front-end
+ *     rewriting needed),
  *   - records savings, and restores from backup.
  *
  * @package Onylogy_Image_Squeeze
@@ -86,66 +89,138 @@ class OIS_Optimizer {
 	}
 
 	/**
-	 * Store an optimized file. Called by the REST endpoint after validating caps.
+	 * MIME type for a format key.
+	 *
+	 * @param string $format jpeg|png|webp|avif.
+	 * @return string
+	 */
+	private function mime_for( $format ) {
+		$map = array(
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'webp' => 'image/webp',
+			'avif' => 'image/avif',
+		);
+		return isset( $map[ $format ] ) ? $map[ $format ] : 'application/octet-stream';
+	}
+
+	/**
+	 * File extension to use for a format, preserving the existing extension
+	 * when the format family hasn't actually changed (e.g. don't rename a
+	 * .jpeg to .jpg just because we recompressed it).
+	 *
+	 * @param string $format  jpeg|png|webp|avif.
+	 * @param string $old_ext The file's current extension.
+	 * @return string
+	 */
+	private function ext_for( $format, $old_ext ) {
+		$old_ext = strtolower( $old_ext );
+		$family  = array(
+			'jpeg' => array( 'jpg', 'jpeg' ),
+			'png'  => array( 'png' ),
+			'webp' => array( 'webp' ),
+			'avif' => array( 'avif' ),
+		);
+		if ( isset( $family[ $format ] ) && in_array( $old_ext, $family[ $format ], true ) ) {
+			return $old_ext;
+		}
+		$default = array(
+			'jpeg' => 'jpg',
+			'png'  => 'png',
+			'webp' => 'webp',
+			'avif' => 'avif',
+		);
+		return isset( $default[ $format ] ) ? $default[ $format ] : $old_ext;
+	}
+
+	/**
+	 * Store an optimized file, REPLACING the attachment's own size file (and
+	 * its extension/MIME type, if the format changed). Called by the REST
+	 * endpoint after validating caps.
 	 *
 	 * @param int    $attachment_id Attachment ID.
 	 * @param string $size          Size key (must exist for this attachment).
-	 * @param string $kind          'orig' | 'webp' | 'avif'.
+	 * @param string $format        'jpeg' | 'png' | 'webp' | 'avif' — the winning format.
 	 * @param string $tmp           Absolute path to the uploaded temp file.
 	 * @param int    $width         Output width.
 	 * @param int    $height        Output height.
 	 * @param int    $original_size Reported original byte size.
 	 * @return array|WP_Error { saved, newSize } or error.
 	 */
-	public function store( $attachment_id, $size, $kind, $tmp, $width, $height, $original_size ) {
+	public function store( $attachment_id, $size, $format, $tmp, $width, $height, $original_size ) {
 		$paths = $this->attachments->allowed_paths( $attachment_id );
 		if ( ! isset( $paths[ $size ] ) ) {
 			return new WP_Error( 'ois_bad_size', 'Unknown size for this attachment.', array( 'status' => 400 ) );
 		}
-		$target_orig = $paths[ $size ];
-		$new_size    = (int) @filesize( $tmp );
+		$old_path  = $paths[ $size ];
+		$new_bytes = (int) @filesize( $tmp );
 
 		$rec = $this->attachments->record( $attachment_id );
 
-		// One-time backup of every current size file + metadata snapshot.
+		// One-time backup of every current size file + a full metadata/mime
+		// snapshot, taken before any writes so Restore can put everything
+		// back exactly as it was.
 		if ( $this->settings->get( 'backup' ) && empty( $rec['backed_up'] ) ) {
-			$this->backup_all( $attachment_id );
-			$rec                 = $this->attachments->record( $attachment_id );
-			$rec['backed_up']    = 1;
-			$rec['meta_backup']  = wp_get_attachment_metadata( $attachment_id );
+			$this->snapshot( $attachment_id );
+			$rec = $this->attachments->record( $attachment_id );
+		}
+
+		$old_ext  = pathinfo( $old_path, PATHINFO_EXTENSION );
+		$new_ext  = $this->ext_for( $format, $old_ext );
+		$new_path = trailingslashit( dirname( $old_path ) ) . pathinfo( $old_path, PATHINFO_FILENAME ) . '.' . $new_ext;
+
+		if ( ! $this->write_file( $tmp, $new_path ) ) {
+			return new WP_Error( 'ois_write', 'Could not write optimized file.', array( 'status' => 500 ) );
+		}
+		if ( $new_path !== $old_path && file_exists( $old_path ) ) {
+			@unlink( $old_path );
+		}
+
+		$mime = $this->mime_for( $format );
+
+		if ( 'full' === $size ) {
+			update_post_meta( $attachment_id, '_wp_attached_file', _wp_relative_upload_path( $new_path ) );
+			wp_update_post( array( 'ID' => $attachment_id, 'post_mime_type' => $mime ) );
+
+			$meta = wp_get_attachment_metadata( $attachment_id );
+			if ( ! is_array( $meta ) ) {
+				$meta = array();
+			}
+			$meta['file'] = _wp_relative_upload_path( $new_path );
+			if ( $width > 0 && $height > 0 ) {
+				$meta['width']  = $width;
+				$meta['height'] = $height;
+			}
+			wp_update_attachment_metadata( $attachment_id, $meta );
+		} else {
+			$meta = wp_get_attachment_metadata( $attachment_id );
+			if ( is_array( $meta ) && isset( $meta['sizes'][ $size ] ) ) {
+				$meta['sizes'][ $size ]['file']      = basename( $new_path );
+				$meta['sizes'][ $size ]['mime-type'] = $mime;
+				if ( $width > 0 && $height > 0 ) {
+					$meta['sizes'][ $size ]['width']  = $width;
+					$meta['sizes'][ $size ]['height'] = $height;
+				}
+				wp_update_attachment_metadata( $attachment_id, $meta );
+			}
 		}
 
 		if ( ! isset( $rec['files'][ $size ] ) || ! is_array( $rec['files'][ $size ] ) ) {
 			$rec['files'][ $size ] = array();
 		}
-		$entry      = &$rec['files'][ $size ];
-		$entry['o'] = max( isset( $entry['o'] ) ? (int) $entry['o'] : 0, (int) $original_size );
-
-		if ( 'orig' === $kind ) {
-			if ( ! $this->write_file( $tmp, $target_orig ) ) {
-				return new WP_Error( 'ois_write', 'Could not write optimized file.', array( 'status' => 500 ) );
-			}
-			$entry['n'] = $new_size;
-			$this->refresh_metadata( $attachment_id, $size, $width, $height, $new_size );
-		} else {
-			// WebP/AVIF sibling: original name + .webp / .avif (EWWW convention).
-			$sibling = $target_orig . '.' . ( 'avif' === $kind ? 'avif' : 'webp' );
-			if ( ! $this->write_file( $tmp, $sibling ) ) {
-				return new WP_Error( 'ois_write', 'Could not write next-gen file.', array( 'status' => 500 ) );
-			}
-			$entry[ $kind ] = $new_size;
-		}
-		unset( $entry );
-
+		$rec['files'][ $size ]['o'] = max( isset( $rec['files'][ $size ]['o'] ) ? (int) $rec['files'][ $size ]['o'] : 0, (int) $original_size );
+		$rec['files'][ $size ]['n'] = $new_bytes;
 		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
 
-		$saved = ( 'orig' === $kind ) ? max( 0, (int) $original_size - $new_size ) : 0;
-		return array( 'saved' => $saved, 'newSize' => $new_size );
+		return array(
+			'saved'   => max( 0, (int) $original_size - $new_bytes ),
+			'newSize' => $new_bytes,
+		);
 	}
 
 	/**
-	 * Record the original size of a size file whose original format was NOT
-	 * replaced (the re-encode wasn't smaller), so savings math stays correct.
+	 * Record the original size of a size file that wasn't replaced (no
+	 * candidate beat it), so savings math stays correct.
 	 *
 	 * @param int    $attachment_id Attachment ID.
 	 * @param string $size          Size key.
@@ -178,18 +253,8 @@ class OIS_Optimizer {
 				if ( ! isset( $f['o'] ) ) {
 					continue;
 				}
-				$o = (int) $f['o'];
-				// Best served byte size: recompressed original (or the untouched
-				// original if not replaced), then the smaller of any next-gen.
-				$best = isset( $f['n'] ) ? (int) $f['n'] : $o;
-				if ( isset( $f['webp'] ) && (int) $f['webp'] < $best ) {
-					$best = (int) $f['webp'];
-				}
-				if ( isset( $f['avif'] ) && (int) $f['avif'] < $best ) {
-					$best = (int) $f['avif'];
-				}
-				$orig += $o;
-				$opt  += $best;
+				$orig += (int) $f['o'];
+				$opt  += isset( $f['n'] ) ? (int) $f['n'] : (int) $f['o'];
 			}
 		}
 		$rec['original']  = $orig;
@@ -201,7 +266,9 @@ class OIS_Optimizer {
 	}
 
 	/**
-	 * Restore an attachment's originals and remove next-gen siblings.
+	 * Restore an attachment to exactly the state it was in before its first
+	 * optimization: original files, original filenames/extensions, original
+	 * MIME type and metadata.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 * @return bool
@@ -210,29 +277,33 @@ class OIS_Optimizer {
 		$rec = $this->attachments->record( $attachment_id );
 		$dir = $this->backup_dir( $attachment_id );
 
-		// Remove next-gen siblings for all known size files first.
+		// Delete every CURRENT size file (whatever format/extension it's in now).
 		foreach ( $this->attachments->allowed_paths( $attachment_id ) as $path ) {
-			foreach ( array( '.webp', '.avif' ) as $ext ) {
-				if ( file_exists( $path . $ext ) ) {
-					@unlink( $path . $ext );
-				}
+			if ( file_exists( $path ) ) {
+				@unlink( $path );
 			}
 		}
 
-		// Restore metadata snapshot (covers resized dimensions).
-		if ( ! empty( $rec['meta_backup'] ) && is_array( $rec['meta_backup'] ) ) {
-			wp_update_attachment_metadata( $attachment_id, $rec['meta_backup'] );
-		}
-
-		// Copy backup files back to the upload directory.
-		$full_path = get_attached_file( $attachment_id );
-		$upload_dir = trailingslashit( dirname( $full_path ) );
+		// Copy the backups (kept under their original basenames) back into place.
+		$full_path  = get_attached_file( $attachment_id );
+		$target_dir = trailingslashit( dirname( $full_path ) );
 		if ( is_dir( $dir ) ) {
 			foreach ( (array) glob( $dir . '*' ) as $backup ) {
-				$name = basename( $backup );
-				@copy( $backup, $upload_dir . $name );
+				@copy( $backup, $target_dir . basename( $backup ) );
 			}
 			$this->rrmdir( $dir );
+		}
+
+		// Restore MIME type, the attached-file pointer, and the full metadata
+		// snapshot (covers filenames, dimensions, and per-size MIME types).
+		if ( ! empty( $rec['mime_backup'] ) ) {
+			wp_update_post( array( 'ID' => $attachment_id, 'post_mime_type' => $rec['mime_backup'] ) );
+		}
+		if ( ! empty( $rec['attached_backup'] ) ) {
+			update_post_meta( $attachment_id, '_wp_attached_file', $rec['attached_backup'] );
+		}
+		if ( ! empty( $rec['meta_backup'] ) && is_array( $rec['meta_backup'] ) ) {
+			wp_update_attachment_metadata( $attachment_id, $rec['meta_backup'] );
 		}
 
 		delete_post_meta( $attachment_id, OIS_Attachments::META_KEY );
@@ -240,11 +311,20 @@ class OIS_Optimizer {
 	}
 
 	/**
-	 * Back up all current size files (originals) for an attachment.
+	 * Snapshot an attachment's current file layout before the first write:
+	 * back up every size file under its original basename, and record the
+	 * MIME type / attached-file pointer / full metadata needed to restore it.
 	 *
 	 * @param int $attachment_id Attachment ID.
 	 */
-	private function backup_all( $attachment_id ) {
+	private function snapshot( $attachment_id ) {
+		$rec                     = $this->attachments->record( $attachment_id );
+		$rec['backed_up']        = 1;
+		$rec['meta_backup']      = wp_get_attachment_metadata( $attachment_id );
+		$rec['mime_backup']      = get_post_field( 'post_mime_type', $attachment_id );
+		$rec['attached_backup']  = get_post_meta( $attachment_id, '_wp_attached_file', true );
+		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
+
 		$dir = $this->backup_dir( $attachment_id );
 		wp_mkdir_p( $dir );
 		foreach ( $this->attachments->size_files( $attachment_id ) as $f ) {
@@ -256,33 +336,6 @@ class OIS_Optimizer {
 	}
 
 	/**
-	 * After replacing a size file, refresh WordPress metadata (filesize, and
-	 * dimensions when the full-size was resized).
-	 *
-	 * @param int    $attachment_id Attachment ID.
-	 * @param string $size          Size key.
-	 * @param int    $width         New width.
-	 * @param int    $height        New height.
-	 * @param int    $new_size      New byte size.
-	 */
-	private function refresh_metadata( $attachment_id, $size, $width, $height, $new_size ) {
-		$meta = wp_get_attachment_metadata( $attachment_id );
-		if ( ! is_array( $meta ) ) {
-			return;
-		}
-		if ( 'full' === $size ) {
-			if ( $width > 0 && $height > 0 ) {
-				$meta['width']  = $width;
-				$meta['height'] = $height;
-			}
-			$meta['filesize'] = $new_size;
-		} elseif ( isset( $meta['sizes'][ $size ] ) ) {
-			$meta['sizes'][ $size ]['filesize'] = $new_size;
-		}
-		wp_update_attachment_metadata( $attachment_id, $meta );
-	}
-
-	/**
 	 * Move/copy an uploaded temp file to a destination, overwriting.
 	 *
 	 * @param string $tmp  Source temp path.
@@ -290,10 +343,6 @@ class OIS_Optimizer {
 	 * @return bool
 	 */
 	private function write_file( $tmp, $dest ) {
-		if ( is_uploaded_file( $tmp ) ) {
-			// Copy (not move) so the same temp can be reused defensively.
-			return (bool) @copy( $tmp, $dest );
-		}
 		return (bool) @copy( $tmp, $dest );
 	}
 

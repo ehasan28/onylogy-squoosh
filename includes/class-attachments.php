@@ -19,7 +19,7 @@ class OIS_Attachments {
 	/**
 	 * Formats we can decode+re-encode. gif/svg are skipped.
 	 */
-	const OPTIMIZABLE = array( 'jpeg', 'png', 'webp' );
+	const OPTIMIZABLE = array( 'jpeg', 'png', 'webp', 'avif' );
 
 	/**
 	 * Normalize a file extension to a format key.
@@ -32,7 +32,7 @@ class OIS_Attachments {
 		if ( 'jpg' === $ext || 'jpeg' === $ext ) {
 			return 'jpeg';
 		}
-		if ( in_array( $ext, array( 'png', 'webp' ), true ) ) {
+		if ( in_array( $ext, array( 'png', 'webp', 'avif' ), true ) ) {
 			return $ext;
 		}
 		return '';
@@ -142,7 +142,7 @@ class OIS_Attachments {
 				array(
 					'post_type'      => 'attachment',
 					'post_status'    => 'inherit',
-					'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/webp' ),
+					'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/webp', 'image/avif' ),
 					'posts_per_page' => 20,
 					'fields'         => 'ids',
 					'orderby'        => 'ID',
