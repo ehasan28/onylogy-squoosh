@@ -123,8 +123,10 @@ class OIS_Serve {
 	}
 
 	/**
-	 * Rebuild a srcset (or single src) pointing at sibling files, but only if
-	 * EVERY referenced file has a sibling — otherwise return '' to skip.
+	 * Rebuild a srcset (or single src) pointing at sibling files. Each candidate
+	 * that has a sibling is kept; those without one are skipped (the browser
+	 * still has the original <img> as a fallback and picks the nearest webp
+	 * candidate). Returns '' only when no candidate has a sibling at all.
 	 *
 	 * @param string $srcset Original srcset or single URL.
 	 * @param string $ext    Sibling extension.
@@ -143,7 +145,7 @@ class OIS_Serve {
 
 			$path = $this->url_to_path( $url );
 			if ( ! $path || ! file_exists( $path . '.' . $ext ) ) {
-				return '';
+				continue; // skip just this size; keep the others
 			}
 			$out[] = $url . '.' . $ext . $descriptor;
 		}

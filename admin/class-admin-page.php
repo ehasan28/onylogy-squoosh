@@ -105,10 +105,19 @@ class OIS_Admin_Page {
 	 */
 	private function enqueue_app() {
 		$asset = $this->asset( 'index' );
+
+		// Onylogy Design System brand fonts (Bricolage Grotesque + Montserrat).
+		wp_enqueue_style(
+			'ois-fonts',
+			'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Montserrat:wght@400;500;600;700&display=swap',
+			array(),
+			null
+		);
+
 		wp_enqueue_script( 'ois-app', OIS_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
 		wp_localize_script( 'ois-app', 'OIS', $this->boot_data() );
 		if ( file_exists( OIS_DIR . 'build/index.css' ) ) {
-			wp_enqueue_style( 'ois-app', OIS_URL . 'build/index.css', array(), $asset['version'] );
+			wp_enqueue_style( 'ois-app', OIS_URL . 'build/index.css', array( 'ois-fonts' ), $asset['version'] );
 		}
 		wp_enqueue_style( 'ois-admin', OIS_URL . 'assets/css/admin.css', array(), OIS_VERSION );
 	}
