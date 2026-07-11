@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1544 500" width="1544" height="500">
+  <!-- Onylogy Image Squeeze · directory banner (1544x500) -->
+  <rect width="1544" height="500" fill="#ffffff"/>
+
+  <!-- left icon block -->
+  <g transform="translate(120 130)">
+    <rect width="240" height="240" rx="52" fill="#1a1a1a"/>
+    <rect x="46" y="46" width="148" height="108" rx="15" fill="none" stroke="#ffffff" stroke-width="9"/>
+    <path d="M46 132 L88 96 L118 122 L146 102 L194 140" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="98" cy="78" r="11" fill="#ffffff"/>
+    <g fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M64 186 H106"/>
+      <path d="M93 173 L106 186 L93 199"/>
+      <path d="M176 186 H134"/>
+      <path d="M147 173 L134 186 L147 199"/>
+    </g>
+  </g>
+
+  <!-- text -->
+  <g transform="translate(430 0)">
+    <text x="0" y="200" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#1a1a1a">Onylogy Image Squeeze</text>
+    <text x="2" y="258" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="#767676">Auto-compress, resize &amp; convert your Media Library to WebP/AVIF</text>
+    <g font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#1a1a1a">
+      <rect x="0" y="320" width="120" height="44" rx="22" fill="none" stroke="#e4e4e7" stroke-width="2"/>
+      <text x="60" y="349" text-anchor="middle">Free</text>
+      <rect x="136" y="320" width="150" height="44" rx="22" fill="none" stroke="#e4e4e7" stroke-width="2"/>
+      <text x="211" y="349" text-anchor="middle">No cloud</text>
+      <rect x="302" y="320" width="210" height="44" rx="22" fill="none" stroke="#e4e4e7" stroke-width="2"/>
+      <text x="407" y="349" text-anchor="middle">In-browser WASM</text>
+    </g>
+  </g>
+</svg>

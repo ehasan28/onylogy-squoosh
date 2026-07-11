@@ -1,0 +1,18 @@
+# Files excluded from the distributed plugin zip / WordPress.org SVN trunk.
+# NOTE: /build is NOT ignored — the compiled bundle must ship. /src is dev-only.
+.git
+.github
+.gitignore
+.distignore
+.wordpress-org
+.DS_Store
+README.md
+node_modules
+vendor
+src
+package.json
+package-lock.json
+webpack.config.js
+.eslintrc*
+*.zip
+.obsidian

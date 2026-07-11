@@ -1,0 +1,18 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Dependencies & build artifacts
+node_modules/
+vendor/
+/build/
+/*.zip
+
+# Compiled translations (keep the .pot source; .mo are built)
+*.mo
+
+# Obsidian vault (not part of the plugin)
+.obsidian/

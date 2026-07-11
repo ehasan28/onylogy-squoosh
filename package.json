@@ -1,0 +1,24 @@
+{
+  "name": "onylogy-image-squeeze",
+  "version": "1.0.0",
+  "description": "Compress and convert images (JPG, PNG, WebP, AVIF) client-side inside wp-admin via WebAssembly codecs.",
+  "author": "Ehasanul Haque",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "lint:js": "wp-scripts lint-js src",
+    "format": "wp-scripts format src"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.0.0"
+  },
+  "dependencies": {
+    "@jsquash/avif": "^2.1.1",
+    "@jsquash/jpeg": "^1.6.0",
+    "@jsquash/png": "^3.1.1",
+    "@jsquash/resize": "^2.1.1",
+    "@jsquash/webp": "^1.5.0"
+  }
+}

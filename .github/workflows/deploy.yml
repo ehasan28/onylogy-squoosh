@@ -1,0 +1,36 @@
+name: Deploy to WordPress.org
+
+# Builds the JS/WASM bundle and deploys a tagged release to the WordPress.org
+# plugin SVN. Requires repo secrets SVN_USERNAME and SVN_PASSWORD (your
+# WordPress.org account). Tag a release like `2.0.0` to trigger.
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install & build
+        run: |
+          npm ci
+          npm run build
+
+      - name: WordPress.org plugin deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: onylogy-image-squeeze

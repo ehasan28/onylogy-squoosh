@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Onylogy Image Squeeze — Onylogy Studio · monochrome plugin icon -->
+  <rect width="256" height="256" rx="56" fill="#1a1a1a"/>
+  <!-- image frame -->
+  <rect x="52" y="50" width="152" height="112" rx="16" fill="none" stroke="#ffffff" stroke-width="10"/>
+  <!-- mountains -->
+  <path d="M52 140 L96 102 L128 130 L156 108 L204 148" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- sun -->
+  <circle cx="106" cy="82" r="12" fill="#ffffff"/>
+  <!-- squeeze arrows (compression) -->
+  <g fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M70 198 H116"/>
+    <path d="M102 184 L116 198 L102 212"/>
+    <path d="M186 198 H140"/>
+    <path d="M154 184 L140 198 L154 212"/>
+  </g>
+</svg>

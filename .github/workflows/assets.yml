@@ -1,0 +1,27 @@
+name: Update WordPress.org assets & readme
+
+# Pushes changes to the directory banner/icon and readme.txt to WordPress.org
+# without a full release. Requires secrets SVN_USERNAME and SVN_PASSWORD.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.wordpress-org/**'
+      - 'readme.txt'
+
+jobs:
+  assets:
+    name: Update assets & readme
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update readme & assets
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: onylogy-image-squeeze
