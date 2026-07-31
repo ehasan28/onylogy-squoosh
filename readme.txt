@@ -8,7 +8,7 @@ Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically compress, resize and convert your Media Library to WebP/AVIF/JPEG XL at Squoosh-level quality — all in your browser. No cloud, no API keys, no per-image cost.
+Compress, resize and convert your Media Library to WebP/AVIF/JPEG XL — all in your browser via WASM. No cloud, no API keys, no per-image cost.
 
 == Description ==
 

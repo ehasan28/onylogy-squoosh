@@ -176,7 +176,7 @@ class OIS_Optimizer {
 			return new WP_Error( 'ois_write', 'Could not write optimized file.', array( 'status' => 500 ) );
 		}
 		if ( $new_path !== $old_path && file_exists( $old_path ) ) {
-			@unlink( $old_path );
+			wp_delete_file( $old_path );
 		}
 
 		$mime = $this->mime_for( $format );
@@ -285,7 +285,7 @@ class OIS_Optimizer {
 		// Delete every CURRENT size file (whatever format/extension it's in now).
 		foreach ( $this->attachments->allowed_paths( $attachment_id ) as $path ) {
 			if ( file_exists( $path ) ) {
-				@unlink( $path );
+				wp_delete_file( $path );
 			}
 		}
 
@@ -352,14 +352,46 @@ class OIS_Optimizer {
 	}
 
 	/**
-	 * Recursively remove a directory.
+	 * Get an initialized WP_Filesystem instance, using the 'direct' method —
+	 * the same filesystem access this plugin already relies on elsewhere
+	 * (copy(), file_exists()) to write optimized files in place.
+	 *
+	 * @return WP_Filesystem_Base|null Null if WP_Filesystem couldn't
+	 *                                 initialize (e.g. a host that requires
+	 *                                 FTP credentials for direct access).
+	 */
+	private function filesystem() {
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			if ( ! WP_Filesystem() ) {
+				return null;
+			}
+		}
+		return $wp_filesystem;
+	}
+
+	/**
+	 * Recursively remove a directory via WP_Filesystem. Falls back to
+	 * deleting whatever files it can reach (leaving the empty directory
+	 * itself in place) on the rare host where direct filesystem access
+	 * isn't available — harmless leftover, not a functional problem, since
+	 * the backup contents are already gone either way.
 	 *
 	 * @param string $dir Directory.
 	 */
 	private function rrmdir( $dir ) {
-		foreach ( (array) glob( trailingslashit( $dir ) . '*' ) as $file ) {
-			is_dir( $file ) ? $this->rrmdir( $file ) : @unlink( $file );
+		$fs = $this->filesystem();
+		if ( $fs && $fs->is_dir( $dir ) ) {
+			$fs->delete( $dir, true );
+			return;
 		}
-		@rmdir( $dir );
+		foreach ( (array) glob( trailingslashit( $dir ) . '*' ) as $file ) {
+			if ( is_dir( $file ) ) {
+				$this->rrmdir( $file );
+			} else {
+				wp_delete_file( $file );
+			}
+		}
 	}
 }
