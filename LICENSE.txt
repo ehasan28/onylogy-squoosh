@@ -1,4 +1,4 @@
-Onylogy Image Squeeze
+Onylogy Squoosh
 Copyright (C) 2026 Ehasanul Haque (Onylogy Studio)
 
 This program is free software; you can redistribute it and/or modify it under

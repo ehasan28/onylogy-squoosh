@@ -10,6 +10,7 @@
 
 import apiFetch from '@wordpress/api-fetch';
 import { optimize } from './squeeze-client.js';
+import { FORMATS } from './formats.js';
 
 const NS = '/ois/v1';
 
@@ -23,22 +24,47 @@ function settings() {
 }
 
 /**
- * Build the list of encode targets for one size file.
+ * Build a full per-codec options object for one candidate format: that
+ * format's defaults (chroma subsampling, effort, etc. — same sets Squoosh
+ * itself exposes, see lib/formats.js) with quality overridden by the
+ * matching setting. PNG has no quality knob, so its defaults pass through
+ * untouched.
  *
- * @param {string}  sourceFormat File's own format (jpeg|png|webp).
- * @param {boolean} isFull       Whether this is the full-size file (resizable).
- * @return {Array<{key:string, format:string, quality:number}>} Targets.
+ * @param {string} format      jpeg|png|webp|avif|jxl.
+ * @param {number} qualityFrom The setting value to use for this format's quality.
+ * @return {Object} Options object for the worker's `targets[].options`.
+ */
+function optionsFor( format, qualityFrom ) {
+	const defaults = ( FORMATS[ format ] && FORMATS[ format ].defaultOptions ) || {};
+	if ( ! ( 'quality' in defaults ) ) {
+		return { ...defaults };
+	}
+	return { ...defaults, quality: qualityFrom };
+}
+
+/**
+ * Build the list of encode targets for one size file: recompress in the
+ * file's own format, plus one candidate per next-gen format enabled in
+ * settings (WebP / AVIF / JPEG XL) that the file isn't already in. The
+ * runner picks whichever candidate comes out smallest.
+ *
+ * @param {string} sourceFormat File's own format (jpeg|png|webp|avif|jxl).
+ * @return {Array<{key:string, format:string, options:Object}>} Targets.
  */
 function targetsFor( sourceFormat ) {
 	const s = settings();
 	const quality = typeof s.quality === 'number' ? s.quality : 80;
-	const origFormat = sourceFormat === 'webp' ? 'webp' : sourceFormat;
-	const targets = [ { key: 'orig', format: origFormat, quality } ];
+	const targets = [ { key: 'orig', format: sourceFormat, options: optionsFor( sourceFormat, quality ) } ];
 	if ( s.webp && sourceFormat !== 'webp' ) {
-		targets.push( { key: 'webp', format: 'webp', quality } );
+		targets.push( { key: 'webp', format: 'webp', options: optionsFor( 'webp', quality ) } );
 	}
 	if ( s.avif && sourceFormat !== 'avif' ) {
-		targets.push( { key: 'avif', format: 'avif', quality: s.avifQuality || 55 } );
+		const avifQuality = typeof s.avifQuality === 'number' ? s.avifQuality : 55;
+		targets.push( { key: 'avif', format: 'avif', options: optionsFor( 'avif', avifQuality ) } );
+	}
+	if ( s.jxl && sourceFormat !== 'jxl' ) {
+		const jxlQuality = typeof s.jxlQuality === 'number' ? s.jxlQuality : quality;
+		targets.push( { key: 'jxl', format: 'jxl', options: optionsFor( 'jxl', jxlQuality ) } );
 	}
 	return targets;
 }

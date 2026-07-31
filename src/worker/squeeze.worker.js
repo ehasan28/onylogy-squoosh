@@ -1,51 +1,66 @@
 /**
  * Squeeze worker — runs all decode/resize/flatten/encode off the main thread.
  *
- * Decode + resize + transparency-flatten happen with OffscreenCanvas (native,
- * fast, universal). Encoding uses the @jsquash/* WebAssembly codecs so output
- * quality is host-independent (mozjpeg / oxipng / webp / avif), exactly like
- * Squoosh. The .wasm files are copied to build/wasm/ and located via each
- * codec's `locateFile`, so webpack never has to bundle a .wasm.
+ * Ported from onylogy-squeeze's src/worker/squeeze.worker.js and extended
+ * for standalone desktop use:
+ *  - JPEG XL encode + decode added (jxl isn't natively decodable by Chromium,
+ *    so jxl sources go through @jsquash/jxl's own WASM decoder instead of
+ *    createImageBitmap; every other supported source format still decodes
+ *    natively, which is fast and matches what the plugin already proved out).
+ *  - Resize now goes through @jsquash/resize (the actual WASM resize methods
+ *    Squoosh itself offers: triangle/catrom/mitchell/lanczos3/hqx/magicKernel*)
+ *    instead of a plain canvas draw-scale, for real output-quality parity.
+ *  - Encode targets carry a full per-codec options object (chroma subsampling,
+ *    progressive, effort, etc.) instead of a single quality number, so the UI
+ *    can expose the same settings Squoosh's own options panels expose.
  *
- * The `optimize` message decodes a source image ONCE and produces multiple
- * outputs (e.g. a recompressed original-format file plus WebP/AVIF siblings),
- * which is how the library optimizer avoids decoding the same file repeatedly.
+ * The .wasm files are copied to a flat build/wasm/ directory (see
+ * webpack.config.js's CopyPlugin) and located via each codec's `locateFile`,
+ * so nothing has to bundle a .wasm.
  */
 
 import encodeJpeg from '@jsquash/jpeg/encode';
-import { init as initJpeg } from '@jsquash/jpeg/encode';
+import { init as initJpegEnc } from '@jsquash/jpeg/encode';
 import encodePng from '@jsquash/png/encode';
-import { init as initPng } from '@jsquash/png/encode';
+import { init as initPngEnc } from '@jsquash/png/encode';
 import encodeWebp from '@jsquash/webp/encode';
-import { init as initWebp } from '@jsquash/webp/encode';
+import { init as initWebpEnc } from '@jsquash/webp/encode';
 import encodeAvif from '@jsquash/avif/encode';
-import { init as initAvif } from '@jsquash/avif/encode';
+import { init as initAvifEnc } from '@jsquash/avif/encode';
+import encodeJxl from '@jsquash/jxl/encode';
+import { init as initJxlEnc } from '@jsquash/jxl/encode';
+import decodeJxl from '@jsquash/jxl/decode';
+import { init as initJxlDec } from '@jsquash/jxl/decode';
+import resizeImage, { initResize, initHqx, initMagicKernel } from '@jsquash/resize';
 
 let wasmBase = '';
 const inited = {};
 
 /**
- * Ensure a codec's WASM is initialised (once).
+ * Ensure an encoder's WASM is initialised (once).
  *
  * @param {string} format Format key.
  */
-async function ensureCodec( format ) {
+async function ensureEncoder( format ) {
 	if ( inited[ format ] ) {
 		return;
 	}
 	const locate = ( path ) => wasmBase + path;
 	switch ( format ) {
 		case 'jpeg':
-			await initJpeg( undefined, { locateFile: locate } );
+			await initJpegEnc( undefined, { locateFile: locate } );
 			break;
 		case 'webp':
-			await initWebp( undefined, { locateFile: locate } );
+			await initWebpEnc( undefined, { locateFile: locate } );
 			break;
 		case 'avif':
-			await initAvif( undefined, { locateFile: locate } );
+			await initAvifEnc( undefined, { locateFile: locate } );
+			break;
+		case 'jxl':
+			await initJxlEnc( undefined, { locateFile: locate } );
 			break;
 		case 'png':
-			await initPng( wasmBase + 'squoosh_png_bg.wasm' );
+			await initPngEnc( wasmBase + 'squoosh_png_bg.wasm' );
 			break;
 		default:
 			throw new Error( 'Unsupported output format: ' + format );
@@ -54,25 +69,71 @@ async function ensureCodec( format ) {
 }
 
 /**
+ * Ensure the JPEG XL decoder's WASM is initialised (once). Only needed when
+ * the *source* file is JPEG XL, since Chromium can't decode it natively.
+ */
+async function ensureJxlDecoder() {
+	if ( inited.jxlDecode ) {
+		return;
+	}
+	const locate = ( path ) => wasmBase + path;
+	await initJxlDec( undefined, { locateFile: locate } );
+	inited.jxlDecode = true;
+}
+
+/**
+ * Ensure the specific resize WASM module(s) a method needs are initialised.
+ *
+ * @param {string} method Resize method key.
+ */
+async function ensureResizeMethod( method ) {
+	if ( method === 'hqx' ) {
+		if ( ! inited.resizeHqx ) {
+			await initHqx( wasmBase + 'squooshhqx_bg.wasm' );
+			inited.resizeHqx = true;
+		}
+		// hqx upsamples then falls through to a regular resize pass.
+		if ( ! inited.resizeMain ) {
+			await initResize( wasmBase + 'squoosh_resize_bg.wasm' );
+			inited.resizeMain = true;
+		}
+		return;
+	}
+	if ( method && method.startsWith( 'magicKernel' ) ) {
+		if ( ! inited.resizeMagicKernel ) {
+			await initMagicKernel( wasmBase + 'jsquash_magic_kernel_bg.wasm' );
+			inited.resizeMagicKernel = true;
+		}
+		return;
+	}
+	if ( ! inited.resizeMain ) {
+		await initResize( wasmBase + 'squoosh_resize_bg.wasm' );
+		inited.resizeMain = true;
+	}
+}
+
+/**
  * Encode ImageData into the requested format.
  *
  * @param {ImageData} imageData Pixels.
  * @param {string}    format    Target format key.
- * @param {number}    quality   Quality 0-100 (ignored by png).
+ * @param {Object}    options   Full per-codec option object (merged with the
+ *                              codec's own defaults inside jSquash).
  * @return {Promise<ArrayBuffer>} Encoded bytes.
  */
-async function encode( imageData, format, quality ) {
-	await ensureCodec( format );
-	const q = Math.max( 0, Math.min( 100, quality ) );
+async function encode( imageData, format, options ) {
+	await ensureEncoder( format );
 	switch ( format ) {
 		case 'jpeg':
-			return encodeJpeg( imageData, { quality: q } );
+			return encodeJpeg( imageData, options );
 		case 'webp':
-			return encodeWebp( imageData, { quality: q } );
+			return encodeWebp( imageData, options );
 		case 'avif':
-			return encodeAvif( imageData, { quality: q } );
+			return encodeAvif( imageData, options );
+		case 'jxl':
+			return encodeJxl( imageData, options );
 		case 'png':
-			return encodePng( imageData );
+			return encodePng( imageData, options );
 		default:
 			throw new Error( 'Unsupported output format: ' + format );
 	}
@@ -84,14 +145,29 @@ async function encode( imageData, format, quality ) {
 const OPAQUE_ONLY = { jpeg: true };
 
 /**
- * Decode a blob into a base OffscreenCanvas at the (optionally resized) target
- * dimensions, preserving alpha. Returns the canvas + its context + dimensions.
+ * Decode a source blob into a plain ImageData at native resolution.
  *
- * @param {Blob}   blob    Source image blob.
- * @param {Object} resize  { maxWidth, maxHeight } (0 = no limit).
- * @return {Promise<{canvas: OffscreenCanvas, ctx: Object, width: number, height: number, hasAlpha: boolean}>} Base raster.
+ * JPEG XL sources can't be decoded by the browser natively, so they go
+ * through @jsquash/jxl's own WASM decoder; every other supported format
+ * (jpeg/png/webp/avif) decodes via the native, fast createImageBitmap path.
+ *
+ * @param {Blob}   blob         Source image blob.
+ * @param {string} sourceFormat Format key the client already sniffed.
+ * @return {Promise<ImageData>} Native-resolution pixels.
  */
-async function decodeToCanvas( blob, resize ) {
+async function decodeSource( blob, sourceFormat ) {
+	if ( sourceFormat === 'jxl' ) {
+		await ensureJxlDecoder();
+		const buffer = await blob.arrayBuffer();
+		let result;
+		try {
+			result = await decodeJxl( buffer );
+		} catch ( e ) {
+			throw new Error( 'Could not decode this JPEG XL file. It may be corrupt or use an unsupported feature.' );
+		}
+		return new ImageData( new Uint8ClampedArray( result.data ), result.width, result.height );
+	}
+
 	let bitmap;
 	try {
 		bitmap = await createImageBitmap( blob );
@@ -101,46 +177,77 @@ async function decodeToCanvas( blob, resize ) {
 		);
 	}
 
-	let { width, height } = bitmap;
-	const maxW = ( resize && resize.maxWidth ) || 0;
-	const maxH = ( resize && resize.maxHeight ) || 0;
-	if ( maxW > 0 || maxH > 0 ) {
-		const scaleW = maxW > 0 ? maxW / width : Infinity;
-		const scaleH = maxH > 0 ? maxH / height : Infinity;
-		const scale = Math.min( scaleW, scaleH, 1 ); // never upscale
-		width = Math.max( 1, Math.round( width * scale ) );
-		height = Math.max( 1, Math.round( height * scale ) );
-	}
-
-	const canvas = new OffscreenCanvas( width, height );
+	const canvas = new OffscreenCanvas( bitmap.width, bitmap.height );
 	const ctx = canvas.getContext( '2d', { alpha: true } );
-	ctx.imageSmoothingEnabled = true;
-	ctx.imageSmoothingQuality = 'high';
-	ctx.drawImage( bitmap, 0, 0, width, height );
+	ctx.drawImage( bitmap, 0, 0 );
 	bitmap.close();
-
-	return { canvas, ctx, width, height };
+	return ctx.getImageData( 0, 0, canvas.width, canvas.height );
 }
 
 /**
- * Get ImageData for a target format, flattening onto a background colour when
- * the format can't hold alpha (so transparent PNG -> JPG never goes black).
+ * Resize an ImageData with a @jsquash/resize method, if resize dimensions
+ * were requested. No-op (returns the input untouched) otherwise.
  *
- * @param {Object} base    Result of decodeToCanvas.
- * @param {string} format  Target format.
- * @param {string} bgColor Flatten colour.
- * @return {ImageData} Pixels for the encoder.
+ * Accepts either an explicit `{ width, height }` (the caller already knows
+ * the target size — e.g. a per-image tool with its own preview), or
+ * `{ maxWidth, maxHeight }` (the caller only has a size ceiling — e.g. this
+ * plugin's single library-wide "resize large images to" setting). The
+ * max-dimension form is resolved here, once imageData's own width/height are
+ * already known, instead of requiring an extra decode round-trip just to
+ * learn them. Never upscales.
+ *
+ * @param {ImageData} imageData Source pixels.
+ * @param {Object}    resize    { width, height, method, fitMethod, premultiply, linearRGB }
+ *                               or { maxWidth, maxHeight, method, fitMethod, premultiply, linearRGB }.
+ * @return {Promise<ImageData>} Resized (or original) pixels.
  */
-function imageDataFor( base, format, bgColor ) {
-	if ( ! OPAQUE_ONLY[ format ] ) {
-		return base.ctx.getImageData( 0, 0, base.width, base.height );
+async function applyResize( imageData, resize ) {
+	if ( ! resize ) {
+		return imageData;
 	}
-	const flat = new OffscreenCanvas( base.width, base.height );
-	const fctx = flat.getContext( '2d', { alpha: false } );
-	fctx.fillStyle = bgColor || '#ffffff';
-	fctx.fillRect( 0, 0, base.width, base.height );
-	fctx.drawImage( base.canvas, 0, 0 );
-	return fctx.getImageData( 0, 0, base.width, base.height );
+
+	let { width, height } = resize;
+	if ( ! width || ! height ) {
+		const maxWidth = resize.maxWidth || 0;
+		const maxHeight = resize.maxHeight || 0;
+		if ( ! maxWidth && ! maxHeight ) {
+			return imageData;
+		}
+		const scale = Math.min(
+			maxWidth ? maxWidth / imageData.width : 1,
+			maxHeight ? maxHeight / imageData.height : 1,
+			1 // never upscale
+		);
+		width = Math.max( 1, Math.round( imageData.width * scale ) );
+		height = Math.max( 1, Math.round( imageData.height * scale ) );
+	}
+
+	if ( width === imageData.width && height === imageData.height ) {
+		return imageData;
+	}
+	await ensureResizeMethod( resize.method );
+	return resizeImage( imageData, { ...resize, width, height } );
+}
+
+/**
+ * Flatten an ImageData onto a background colour (for formats that can't
+ * hold alpha, e.g. transparent PNG -> JPEG should never go black).
+ *
+ * @param {ImageData} imageData Source pixels.
+ * @param {string}    bgColor   Flatten colour.
+ * @return {ImageData} Opaque pixels.
+ */
+function flatten( imageData, bgColor ) {
+	const bg = new OffscreenCanvas( imageData.width, imageData.height );
+	const bgCtx = bg.getContext( '2d', { alpha: false } );
+	bgCtx.fillStyle = bgColor || '#ffffff';
+	bgCtx.fillRect( 0, 0, imageData.width, imageData.height );
+
+	const src = new OffscreenCanvas( imageData.width, imageData.height );
+	src.getContext( '2d' ).putImageData( imageData, 0, 0 );
+
+	bgCtx.drawImage( src, 0, 0 );
+	return bgCtx.getImageData( 0, 0, imageData.width, imageData.height );
 }
 
 self.onmessage = async ( event ) => {
@@ -153,25 +260,57 @@ self.onmessage = async ( event ) => {
 	}
 
 	if ( msg.type === 'optimize' ) {
-		const { id, blob, resize, bgColor, targets } = msg;
+		const { id, blob, sourceFormat, resize, bgColor, targets } = msg;
 		try {
-			const base = await decodeToCanvas( blob, resize );
+			let imageData = await decodeSource( blob, sourceFormat );
+			imageData = await applyResize( imageData, resize );
+
 			const outputs = [];
 			const transfer = [];
 			for ( const t of targets ) {
-				const imageData = imageDataFor( base, t.format, bgColor );
+				const dataForFormat = OPAQUE_ONLY[ t.format ]
+					? flatten( imageData, bgColor )
+					: imageData;
 				// eslint-disable-next-line no-await-in-loop
-				const buffer = await encode( imageData, t.format, t.quality );
+				const buffer = await encode( dataForFormat, t.format, t.options || {} );
 				outputs.push( {
 					key: t.key,
 					format: t.format,
 					buffer,
-					width: base.width,
-					height: base.height,
+					width: imageData.width,
+					height: imageData.height,
 				} );
 				transfer.push( buffer );
 			}
 			self.postMessage( { type: 'result', id, outputs }, transfer );
+		} catch ( err ) {
+			self.postMessage( {
+				type: 'error',
+				id,
+				message: err && err.message ? err.message : String( err ),
+			} );
+		}
+		return;
+	}
+
+	if ( msg.type === 'decode' ) {
+		// Decode any supported format into raw pixels for on-screen preview.
+		// Used for every format (not just jxl) so the UI never has to rely on
+		// the browser's own <img>/native rendering support, which Chromium
+		// doesn't have for jxl.
+		const { id, blob, sourceFormat } = msg;
+		try {
+			const imageData = await decodeSource( blob, sourceFormat );
+			self.postMessage(
+				{
+					type: 'decoded',
+					id,
+					width: imageData.width,
+					height: imageData.height,
+					data: imageData.data.buffer,
+				},
+				[ imageData.data.buffer ]
+			);
 		} catch ( err ) {
 			self.postMessage( {
 				type: 'error',

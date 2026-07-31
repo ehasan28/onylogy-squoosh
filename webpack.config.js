@@ -21,6 +21,13 @@ const CODECS = [
 	'node_modules/@jsquash/webp/codec/enc/webp_enc.wasm',
 	'node_modules/@jsquash/webp/codec/enc/webp_enc_simd.wasm',
 	'node_modules/@jsquash/avif/codec/enc/avif_enc.wasm',
+	'node_modules/@jsquash/jxl/codec/enc/jxl_enc.wasm',
+	'node_modules/@jsquash/jxl/codec/enc/jxl_enc_mt.wasm',
+	'node_modules/@jsquash/jxl/codec/enc/jxl_enc_mt_simd.wasm',
+	'node_modules/@jsquash/jxl/codec/dec/jxl_dec.wasm',
+	'node_modules/@jsquash/resize/lib/resize/pkg/squoosh_resize_bg.wasm',
+	'node_modules/@jsquash/resize/lib/hqx/pkg/squooshhqx_bg.wasm',
+	'node_modules/@jsquash/resize/lib/magic-kernel/pkg/jsquash_magic_kernel_bg.wasm',
 ];
 
 module.exports = {

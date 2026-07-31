@@ -7,11 +7,13 @@ import { __, sprintf } from '@wordpress/i18n';
 import { getStats, runQueue } from '../lib/runner.js';
 import { formatBytes } from '../lib/formats.js';
 import ProgressBar from './ProgressBar.js';
+import Toast from './Toast.js';
 
 export default function Dashboard() {
 	const [ stats, setStats ] = useState( null );
 	const [ running, setRunning ] = useState( false );
 	const [ progress, setProgress ] = useState( null );
+	const [ toast, setToast ] = useState( '' );
 	const stopRef = useRef( false );
 
 	const loadStats = useCallback( async () => {
@@ -30,12 +32,33 @@ export default function Dashboard() {
 		stopRef.current = false;
 		setRunning( true );
 		setProgress( { done: 0, failed: 0, total: stats ? stats.pending : 0, totalSaved: 0, current: '' } );
-		await runQueue( {
+		const result = await runQueue( {
 			onProgress: ( state ) => setProgress( { ...state } ),
 			shouldStop: () => stopRef.current,
 		} );
 		setRunning( false );
 		await loadStats();
+
+		if ( stopRef.current ) {
+			setToast( __( 'Stopped', 'onylogy-squoosh' ) );
+		} else if ( result.done > 0 ) {
+			setToast(
+				result.failed > 0
+					? sprintf(
+						/* translators: 1: optimized count, 2: bytes saved, 3: failed count. */
+						__( 'Optimized %1$d images, saved %2$s (%3$d failed)', 'onylogy-squoosh' ),
+						result.done,
+						formatBytes( result.totalSaved ),
+						result.failed
+					)
+					: sprintf(
+						/* translators: 1: optimized count, 2: bytes saved. */
+						__( 'Optimized %1$d images, saved %2$s', 'onylogy-squoosh' ),
+						result.done,
+						formatBytes( result.totalSaved )
+					)
+			);
+		}
 	};
 
 	const stop = () => {
@@ -43,10 +66,10 @@ export default function Dashboard() {
 	};
 
 	if ( ! stats ) {
-		return <p className="ois-loading">{ __( 'Loading…', 'onylogy-image-squeeze' ) }</p>;
+		return <p className="ois-loading">{ __( 'Loading…', 'onylogy-squoosh' ) }</p>;
 	}
 	if ( stats.error ) {
-		return <p className="ois-error">{ __( 'Could not load statistics.', 'onylogy-image-squeeze' ) }</p>;
+		return <p className="ois-error">{ __( 'Could not load statistics.', 'onylogy-squoosh' ) }</p>;
 	}
 
 	const percent = stats.bytes_original > 0
@@ -58,20 +81,20 @@ export default function Dashboard() {
 			<div className="ois-cards">
 				<div className="ois-card ois-card--hero">
 					<span className="ois-card__num">{ formatBytes( stats.bytes_saved ) }</span>
-					<span className="ois-card__label">{ __( 'Total saved', 'onylogy-image-squeeze' ) }</span>
-					<span className="ois-card__sub">{ percent }% { __( 'smaller', 'onylogy-image-squeeze' ) }</span>
+					<span className="ois-card__label">{ __( 'Total saved', 'onylogy-squoosh' ) }</span>
+					<span className="ois-card__sub">{ percent }% { __( 'smaller', 'onylogy-squoosh' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.optimized }</span>
-					<span className="ois-card__label">{ __( 'Optimized', 'onylogy-image-squeeze' ) }</span>
+					<span className="ois-card__label">{ __( 'Optimized', 'onylogy-squoosh' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.pending }</span>
-					<span className="ois-card__label">{ __( 'Pending', 'onylogy-image-squeeze' ) }</span>
+					<span className="ois-card__label">{ __( 'Pending', 'onylogy-squoosh' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.images_total }</span>
-					<span className="ois-card__label">{ __( 'Images total', 'onylogy-image-squeeze' ) }</span>
+					<span className="ois-card__label">{ __( 'Images total', 'onylogy-squoosh' ) }</span>
 				</div>
 			</div>
 
@@ -82,19 +105,19 @@ export default function Dashboard() {
 						<span>
 							{ sprintf(
 								/* translators: 1: done, 2: total. */
-								__( '%1$d of %2$d done', 'onylogy-image-squeeze' ),
+								__( '%1$d of %2$d done', 'onylogy-squoosh' ),
 								progress.done + progress.failed,
 								progress.total
 							) }
 							{ progress.failed > 0 &&
 								' · ' + sprintf(
 									/* translators: %d: failures. */
-									__( '%d failed', 'onylogy-image-squeeze' ),
+									__( '%d failed', 'onylogy-squoosh' ),
 									progress.failed
 								) }
 						</span>
 						<span className="ois-run__saved">
-							{ __( 'Saved this run:', 'onylogy-image-squeeze' ) }{ ' ' }
+							{ __( 'Saved this run:', 'onylogy-squoosh' ) }{ ' ' }
 							<strong>{ formatBytes( progress.totalSaved ) }</strong>
 						</span>
 					</div>
@@ -115,22 +138,24 @@ export default function Dashboard() {
 						{ stats.pending > 0
 							? sprintf(
 								/* translators: %d: pending count. */
-								__( 'Optimize all %d images', 'onylogy-image-squeeze' ),
+								__( 'Optimize all %d images', 'onylogy-squoosh' ),
 								stats.pending
 							)
-							: __( 'Everything is optimized 🎉', 'onylogy-image-squeeze' ) }
+							: __( 'Everything is optimized 🎉', 'onylogy-squoosh' ) }
 					</button>
 				) : (
 					<button type="button" className="button button-hero" onClick={ stop }>
-						{ __( 'Stop', 'onylogy-image-squeeze' ) }
+						{ __( 'Stop', 'onylogy-squoosh' ) }
 					</button>
 				) }
 				{ running && (
 					<p className="ois-dash__note">
-						{ __( 'Keep this tab open until it finishes — optimization runs in your browser.', 'onylogy-image-squeeze' ) }
+						{ __( 'Keep this tab open until it finishes — optimization runs in your browser.', 'onylogy-squoosh' ) }
 					</p>
 				) }
 			</div>
+
+			{ toast && <Toast message={ toast } onDone={ () => setToast( '' ) } /> }
 		</div>
 	);
 }

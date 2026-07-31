@@ -1,9 +1,9 @@
 <?php
 /**
- * Admin: the Media → Image Squeeze dashboard, plus enqueuing the auto-on-upload
+ * Admin: the Media → Squoosh dashboard, plus enqueuing the auto-on-upload
  * + row-action script on the Media Library / editor screens.
  *
- * @package Onylogy_Image_Squeeze
+ * @package Onylogy_Squoosh
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class OIS_Admin_Page {
 
-	const PAGE_SLUG   = 'ois-squeeze';
-	const HOOK_SUFFIX = 'media_page_ois-squeeze';
+	const PAGE_SLUG   = 'onylogy-squoosh';
+	const HOOK_SUFFIX = 'media_page_onylogy-squoosh';
 
 	/**
 	 * Settings.
@@ -50,8 +50,8 @@ class OIS_Admin_Page {
 	public function menu() {
 		add_submenu_page(
 			'upload.php',
-			__( 'Onylogy Image Squeeze', 'onylogy-image-squeeze' ),
-			__( 'Image Squeeze', 'onylogy-image-squeeze' ),
+			__( 'Onylogy Squoosh', 'onylogy-squoosh' ),
+			__( 'Squoosh', 'onylogy-squoosh' ),
 			'upload_files',
 			self::PAGE_SLUG,
 			array( $this, 'render' )
@@ -106,18 +106,12 @@ class OIS_Admin_Page {
 	private function enqueue_app() {
 		$asset = $this->asset( 'index' );
 
-		// Onylogy Design System brand fonts (Bricolage Grotesque + Montserrat).
-		wp_enqueue_style(
-			'ois-fonts',
-			'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Montserrat:wght@400;500;600;700&display=swap',
-			array(),
-			null
-		);
-
 		wp_enqueue_script( 'ois-app', OIS_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
 		wp_localize_script( 'ois-app', 'OIS', $this->boot_data() );
 		if ( file_exists( OIS_DIR . 'build/index.css' ) ) {
-			wp_enqueue_style( 'ois-app', OIS_URL . 'build/index.css', array( 'ois-fonts' ), $asset['version'] );
+			// Fonts (Bricolage Grotesque + Montserrat) are self-hosted via
+			// @font-face inside build/index.css itself — no external request.
+			wp_enqueue_style( 'ois-app', OIS_URL . 'build/index.css', array(), $asset['version'] );
 		}
 		wp_enqueue_style( 'ois-admin', OIS_URL . 'assets/css/admin.css', array(), OIS_VERSION );
 	}
@@ -139,9 +133,9 @@ class OIS_Admin_Page {
 			return;
 		}
 		echo '<div class="wrap ois-wrap">';
-		echo '<h1 class="ois-title">' . esc_html__( 'Onylogy Image Squeeze', 'onylogy-image-squeeze' );
-		echo ' <a class="ois-badge" href="https://onylogy.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Onylogy Studio', 'onylogy-image-squeeze' ) . '</a></h1>';
-		echo '<p class="ois-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-image-squeeze' ) . '</p>';
+		echo '<h1 class="ois-title">' . esc_html__( 'Onylogy Squoosh', 'onylogy-squoosh' );
+		echo ' <a class="ois-badge" href="https://onylogy.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Onylogy Studio', 'onylogy-squoosh' ) . '</a></h1>';
+		echo '<p class="ois-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-squoosh' ) . '</p>';
 		echo '<div id="ois-app"></div>';
 		echo '</div>';
 	}

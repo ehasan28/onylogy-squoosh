@@ -4,7 +4,7 @@
  * camelCase names the JS reads, so there is no server/client mapping to keep in
  * sync.
  *
- * @package Onylogy_Image_Squeeze
+ * @package Onylogy_Squoosh
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -33,6 +33,9 @@ class OIS_Settings {
 			'quality'      => 80,      // JPEG/WebP quality 40-100.
 			'webp'         => 1,       // Allow converting to WebP when it wins.
 			'avif'         => 0,       // Also allow AVIF (slower, opt-in).
+			'avifQuality'  => 55,      // AVIF quality 1-100 (lower than JPEG/WebP looks right at the same setting).
+			'jxl'          => 0,       // Also allow JPEG XL (slower still, opt-in).
+			'jxlQuality'   => 75,      // JPEG XL quality 1-100.
 			'autoOnUpload' => 1,       // Optimize new uploads automatically.
 			'resizeMax'    => 2560,    // Max full-size dimension in px (0 = off).
 			'backup'       => 1,       // Keep restorable backups of originals.
@@ -80,7 +83,13 @@ class OIS_Settings {
 		if ( isset( $input['quality'] ) ) {
 			$out['quality'] = max( 40, min( 100, absint( $input['quality'] ) ) );
 		}
-		foreach ( array( 'webp', 'avif', 'autoOnUpload', 'backup' ) as $flag ) {
+		if ( isset( $input['avifQuality'] ) ) {
+			$out['avifQuality'] = max( 1, min( 100, absint( $input['avifQuality'] ) ) );
+		}
+		if ( isset( $input['jxlQuality'] ) ) {
+			$out['jxlQuality'] = max( 1, min( 100, absint( $input['jxlQuality'] ) ) );
+		}
+		foreach ( array( 'webp', 'avif', 'jxl', 'autoOnUpload', 'backup' ) as $flag ) {
 			if ( array_key_exists( $flag, $input ) ) {
 				$out[ $flag ] = ! empty( $input[ $flag ] ) && 'false' !== $input[ $flag ] ? 1 : 0;
 			}

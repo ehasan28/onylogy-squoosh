@@ -14,6 +14,26 @@ import { fetchItem, optimizeAttachment } from './lib/runner.js';
 // Serialize optimizations so overlapping uploads don't thrash the single worker.
 let chain = Promise.resolve();
 
+/**
+ * A brief, fixed-position confirmation toast — plain DOM, not a Preact
+ * component, since this file runs on every admin screen (not just the
+ * Dashboard) and has no other reason to pull in rendering machinery.
+ * Visually matches ui/Toast.js (same .ois-toast class from index.css).
+ *
+ * @param {string} message Text to show.
+ */
+function showToast( message ) {
+	const existing = document.querySelector( '.ois-toast' );
+	if ( existing ) {
+		existing.remove();
+	}
+	const el = document.createElement( 'div' );
+	el.className = 'ois-toast';
+	el.textContent = message;
+	document.body.appendChild( el );
+	window.setTimeout( () => el.remove(), 3500 );
+}
+
 function queueOptimize( attachmentId ) {
 	const settings = ( window.OIS && window.OIS.settings ) || {};
 	if ( settings.autoOnUpload === false ) {
@@ -98,14 +118,15 @@ function hookRowActions() {
 					await optimizeAttachment( item );
 				}
 				link.textContent = 'Optimized ✓';
+				showToast( 'Image optimized' );
 			} else {
 				await apiFetch( { path: '/ois/v1/restore', method: 'POST', data: { attachment_id: id } } );
 				link.textContent = 'Restored ✓';
+				showToast( 'Original restored' );
 			}
 		} catch ( err ) {
 			link.textContent = original;
-			// eslint-disable-next-line no-alert
-			window.alert( 'Onylogy Image Squeeze: ' + ( err && err.message ? err.message : 'failed' ) );
+			showToast( 'Onylogy Squoosh: ' + ( err && err.message ? err.message : 'failed' ) );
 		}
 	} );
 }

@@ -1,7 +1,16 @@
 /**
- * Main-thread client for the squeeze worker. Promise-based; one worker instance
- * shared across all jobs, jobs correlated by id.
+ * Main-thread client for the squeeze worker. Promise-based; one worker
+ * instance shared across all jobs, jobs correlated by id.
+ *
+ * Upgraded to match onylogy-squeeze's current worker contract (full
+ * per-format options objects instead of a single quality number, explicit
+ * `sourceFormat`, JPEG XL support, `decode` for pixels) — see
+ * ../worker/squeeze.worker.js. `wasmBase` resolution stays the
+ * WordPress-specific line: derived from `self.OIS.pluginUrl` + `build/wasm/`,
+ * set by admin/class-admin-page.php's wp_localize_script().
  */
+
+import { sourceFormat as guessSourceFormat } from './formats';
 
 let worker = null;
 let readyPromise = null;
@@ -22,7 +31,7 @@ function getWorker() {
 
 	worker.onmessage = ( event ) => {
 		const msg = event.data || {};
-		if ( msg.type === 'result' || msg.type === 'error' ) {
+		if ( msg.type === 'result' || msg.type === 'decoded' || msg.type === 'error' ) {
 			const entry = pending.get( msg.id );
 			if ( ! entry ) {
 				return;
@@ -61,7 +70,12 @@ function getWorker() {
  * Optimize a source image into one or more outputs in a single decode pass.
  *
  * @param {Blob}   file    Source image.
- * @param {Object} options { resize:{maxWidth,maxHeight}, bgColor, targets:[{key,format,quality}] }.
+ * @param {Object} options {
+ *                           resize: { width, height, method, fitMethod, premultiply, linearRGB } | null,
+ *                           bgColor: string,
+ *                           targets: [ { key, format, options } ],
+ *                           sourceFormat?: string, // auto-detected from `file` when omitted
+ *                         }
  * @return {Promise<Array<{key:string, format:string, buffer:ArrayBuffer, width:number, height:number}>>} Outputs.
  */
 export async function optimize( file, options ) {
@@ -75,6 +89,7 @@ export async function optimize( file, options ) {
 				type: 'optimize',
 				id,
 				blob: file,
+				sourceFormat: options.sourceFormat || guessSourceFormat( file ),
 				resize: options.resize || null,
 				bgColor: options.bgColor || '#ffffff',
 				targets: options.targets,
@@ -83,4 +98,34 @@ export async function optimize( file, options ) {
 	} );
 
 	return result.outputs;
+}
+
+/**
+ * Decode any supported image (including jxl, which the browser can't render
+ * natively) into raw pixels. Not used by the bulk/auto-upload flow today, but
+ * kept available for any future preview feature.
+ *
+ * @param {Blob}   file        Source image.
+ * @param {string} [sourceFmt] Format key; auto-detected from `file` when omitted.
+ * @return {Promise<ImageData>} Decoded pixels.
+ */
+export async function decode( file, sourceFmt ) {
+	const w = await getWorker();
+	const id = ++seq;
+
+	const result = await new Promise( ( resolve, reject ) => {
+		pending.set( id, { resolve, reject } );
+		w.postMessage( {
+			type: 'decode',
+			id,
+			blob: file,
+			sourceFormat: sourceFmt || guessSourceFormat( file ),
+		} );
+	} );
+
+	return new ImageData(
+		new Uint8ClampedArray( result.data ),
+		result.width,
+		result.height
+	);
 }

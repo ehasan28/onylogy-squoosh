@@ -10,7 +10,7 @@
  *     rewriting needed),
  *   - records savings, and restores from backup.
  *
- * @package Onylogy_Image_Squeeze
+ * @package Onylogy_Squoosh
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -100,6 +100,7 @@ class OIS_Optimizer {
 			'png'  => 'image/png',
 			'webp' => 'image/webp',
 			'avif' => 'image/avif',
+			'jxl'  => 'image/jxl',
 		);
 		return isset( $map[ $format ] ) ? $map[ $format ] : 'application/octet-stream';
 	}
@@ -109,7 +110,7 @@ class OIS_Optimizer {
 	 * when the format family hasn't actually changed (e.g. don't rename a
 	 * .jpeg to .jpg just because we recompressed it).
 	 *
-	 * @param string $format  jpeg|png|webp|avif.
+	 * @param string $format  jpeg|png|webp|avif|jxl.
 	 * @param string $old_ext The file's current extension.
 	 * @return string
 	 */
@@ -120,6 +121,7 @@ class OIS_Optimizer {
 			'png'  => array( 'png' ),
 			'webp' => array( 'webp' ),
 			'avif' => array( 'avif' ),
+			'jxl'  => array( 'jxl' ),
 		);
 		if ( isset( $family[ $format ] ) && in_array( $old_ext, $family[ $format ], true ) ) {
 			return $old_ext;
@@ -129,6 +131,7 @@ class OIS_Optimizer {
 			'png'  => 'png',
 			'webp' => 'webp',
 			'avif' => 'avif',
+			'jxl'  => 'jxl',
 		);
 		return isset( $default[ $format ] ) ? $default[ $format ] : $old_ext;
 	}
@@ -186,7 +189,8 @@ class OIS_Optimizer {
 			if ( ! is_array( $meta ) ) {
 				$meta = array();
 			}
-			$meta['file'] = _wp_relative_upload_path( $new_path );
+			$meta['file']     = _wp_relative_upload_path( $new_path );
+			$meta['filesize'] = $new_bytes;
 			if ( $width > 0 && $height > 0 ) {
 				$meta['width']  = $width;
 				$meta['height'] = $height;
@@ -197,6 +201,7 @@ class OIS_Optimizer {
 			if ( is_array( $meta ) && isset( $meta['sizes'][ $size ] ) ) {
 				$meta['sizes'][ $size ]['file']      = basename( $new_path );
 				$meta['sizes'][ $size ]['mime-type'] = $mime;
+				$meta['sizes'][ $size ]['filesize']  = $new_bytes;
 				if ( $width > 0 && $height > 0 ) {
 					$meta['sizes'][ $size ]['width']  = $width;
 					$meta['sizes'][ $size ]['height'] = $height;

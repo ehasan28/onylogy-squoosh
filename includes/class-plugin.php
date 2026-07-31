@@ -2,7 +2,7 @@
 /**
  * Main plugin bootstrap: loads dependencies and wires up hooks.
  *
- * @package Onylogy_Image_Squeeze
+ * @package Onylogy_Squoosh
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -106,8 +106,8 @@ final class OIS_Plugin {
 	 * @return array
 	 */
 	public function action_links( $links ) {
-		$url  = admin_url( 'upload.php?page=ois-squeeze' );
-		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-image-squeeze' ) . '</a>';
+		$url  = admin_url( 'upload.php?page=onylogy-squoosh' );
+		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squoosh' ) . '</a>';
 		array_unshift( $links, $link );
 		return $links;
 	}
@@ -127,13 +127,13 @@ final class OIS_Plugin {
 			$actions['ois_optimize'] = sprintf(
 				'<a href="#" class="ois-row-optimize" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Optimize', 'onylogy-image-squeeze' )
+				esc_html__( 'Optimize', 'onylogy-squoosh' )
 			);
 		} else {
 			$actions['ois_restore'] = sprintf(
 				'<a href="#" class="ois-row-restore" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Restore original', 'onylogy-image-squeeze' )
+				esc_html__( 'Restore original', 'onylogy-squoosh' )
 			);
 		}
 		return $actions;

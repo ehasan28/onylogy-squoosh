@@ -1,5 +1,5 @@
 /**
- * Onylogy Image Squeeze — admin entry point. Mounts the React workbench into
+ * Onylogy Squoosh — admin entry point. Mounts the React workbench into
  * the #ois-app node printed by the PHP admin page.
  */
 

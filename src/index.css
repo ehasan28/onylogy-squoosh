@@ -4,6 +4,22 @@
  * Bricolage Grotesque headings / Montserrat body, 8px grid).
  */
 
+/* Self-hosted, not a Google Fonts CDN link — wp-admin sites vary widely in
+   what external requests they allow, and self-hosting means this never
+   depends on a third-party request succeeding. */
+@font-face {
+	font-family: 'Bricolage Grotesque';
+	src: url( './fonts/BricolageGrotesque-Variable.woff2' ) format( 'woff2' );
+	font-weight: 400 800;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Montserrat';
+	src: url( './fonts/Montserrat-Variable.woff2' ) format( 'woff2' );
+	font-weight: 400 700;
+	font-display: swap;
+}
+
 .ois-wrap {
 	/* Onylogy Design System tokens (scoped to our screen). */
 	--color-black: #131513;
@@ -312,4 +328,76 @@
 	color: var( --color-error );
 	font-size: 13px;
 	font-weight: 600;
+}
+
+/* Format chips — multi-select toggles (this plugin auto-picks whichever
+   enabled format comes out smallest; it isn't the single-select "convert to
+   this one format" picker the desktop/web app uses), same visual language:
+   bordered pill, border/text tinted to the format's own accent when active. */
+.ois-format-chip-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.ois-format-chip {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-family: var( --font-body );
+	font-size: 12px;
+	font-weight: 700;
+	padding: 6px 12px;
+	border-radius: var( --radius-pill );
+	border: 1px solid var( --color-grey-400 );
+	background: var( --color-white );
+	color: var( --color-grey-600 );
+	cursor: pointer;
+	transition: background 150ms var( --ease ), border-color 150ms var( --ease ), color 150ms var( --ease );
+}
+.ois-format-chip:hover {
+	border-color: var( --color-grey-500 );
+}
+.ois-format-chip.is-active {
+	border-color: currentColor;
+}
+/* Fixed literal colors, not theme-shifting tokens — same reasoning as the
+   desktop/web app's badge fix: a color meant to look right against ONE
+   background (here, always white) shouldn't be derived from a token that
+   might change brightness elsewhere. */
+.ois-format-chip[data-format='webp'].is-active { background: #e6f7f3; color: #12836a; }
+.ois-format-chip[data-format='avif'].is-active { background: #f3eafb; color: #7a3fbe; }
+.ois-format-chip[data-format='jxl'].is-active { background: #fde9ef; color: #c22a63; }
+.ois-format-chip[disabled] {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Quality sub-row for a candidate format — only shown once that format's
+   chip is enabled, indented to read as "belongs to" the chip above it. */
+.ois-quality-sub {
+	margin: 10px 0 0 4px;
+	padding-left: 12px;
+	border-left: 2px solid var( --color-grey-300 );
+}
+
+/* Toast — fixed to the viewport (unlike the desktop/web app's, which is
+   positioned relative to a full-bleed canvas this page doesn't have). */
+.ois-toast {
+	position: fixed;
+	left: 32px;
+	bottom: 32px;
+	z-index: 999999; /* above wp-admin's own admin bar / modals */
+	padding: 10px 16px;
+	background: var( --color-black );
+	color: var( --color-white );
+	font-family: var( --font-body );
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: var( --radius-sm );
+	box-shadow: var( --elev-md );
+	animation: ois-toast-in 200ms var( --ease );
+}
+@keyframes ois-toast-in {
+	from { opacity: 0; transform: translateY( 6px ); }
+	to { opacity: 1; transform: translateY( 0 ); }
 }

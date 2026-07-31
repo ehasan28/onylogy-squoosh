@@ -1,5 +1,5 @@
 /**
- * Onylogy Image Squeeze — admin app.
+ * Onylogy Squoosh — admin app.
  *
  * A Media Library optimizer: a bulk dashboard (savings summary + one-click
  * "Optimize All") and a settings panel. All compression happens in-browser via
@@ -23,14 +23,14 @@ export default function App() {
 					className={ 'ois-tab' + ( tab === 'dashboard' ? ' is-active' : '' ) }
 					onClick={ () => setTab( 'dashboard' ) }
 				>
-					{ __( 'Bulk Optimize', 'onylogy-image-squeeze' ) }
+					{ __( 'Bulk Optimize', 'onylogy-squoosh' ) }
 				</button>
 				<button
 					type="button"
 					className={ 'ois-tab' + ( tab === 'settings' ? ' is-active' : '' ) }
 					onClick={ () => setTab( 'settings' ) }
 				>
-					{ __( 'Settings', 'onylogy-image-squeeze' ) }
+					{ __( 'Settings', 'onylogy-squoosh' ) }
 				</button>
 			</nav>
 

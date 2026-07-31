@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1544 500" width="1544" height="500">
-  <!-- Onylogy Image Squeeze · directory banner (1544x500) -->
+  <!-- Onylogy Squoosh · directory banner (1544x500) -->
   <rect width="1544" height="500" fill="#ffffff"/>
 
   <!-- left icon block -->
@@ -18,8 +18,8 @@
 
   <!-- text -->
   <g transform="translate(430 0)">
-    <text x="0" y="200" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#1a1a1a">Onylogy Image Squeeze</text>
-    <text x="2" y="258" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="#767676">Auto-compress, resize &amp; convert your Media Library to WebP/AVIF</text>
+    <text x="0" y="200" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#1a1a1a">Onylogy Squoosh</text>
+    <text x="2" y="258" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="500" fill="#767676">Auto-compress, resize &amp; convert to WebP/AVIF/JPEG XL</text>
     <g font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="600" fill="#1a1a1a">
       <rect x="0" y="320" width="120" height="44" rx="22" fill="none" stroke="#e4e4e7" stroke-width="2"/>
       <text x="60" y="349" text-anchor="middle">Free</text>

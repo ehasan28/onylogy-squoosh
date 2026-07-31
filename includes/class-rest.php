@@ -4,7 +4,7 @@
  * pull the queue, upload optimized bytes, mark attachments complete, restore,
  * read stats, and read/write settings.
  *
- * @package Onylogy_Image_Squeeze
+ * @package Onylogy_Squoosh
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -203,7 +203,7 @@ class OIS_REST {
 		if ( ! wp_attachment_is_image( $id ) ) {
 			return new WP_Error( 'ois_bad_id', 'Not an image attachment.', array( 'status' => 400 ) );
 		}
-		if ( ! in_array( $format, array( 'jpeg', 'png', 'webp', 'avif' ), true ) ) {
+		if ( ! in_array( $format, array( 'jpeg', 'png', 'webp', 'avif', 'jxl' ), true ) ) {
 			return new WP_Error( 'ois_bad_format', 'Invalid format.', array( 'status' => 400 ) );
 		}
 		$files = $req->get_file_params();
