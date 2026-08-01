@@ -33,4 +33,4 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-          SLUG: onylogy-squoosh
+          SLUG: onylogy-squeeze-wp

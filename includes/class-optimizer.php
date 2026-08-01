@@ -10,7 +10,7 @@
  *     rewriting needed),
  *   - records savings, and restores from backup.
  *
- * @package Onylogy_Squoosh
+ * @package Onylogy_Squeeze
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -100,7 +100,6 @@ class OIS_Optimizer {
 			'png'  => 'image/png',
 			'webp' => 'image/webp',
 			'avif' => 'image/avif',
-			'jxl'  => 'image/jxl',
 		);
 		return isset( $map[ $format ] ) ? $map[ $format ] : 'application/octet-stream';
 	}
@@ -110,7 +109,7 @@ class OIS_Optimizer {
 	 * when the format family hasn't actually changed (e.g. don't rename a
 	 * .jpeg to .jpg just because we recompressed it).
 	 *
-	 * @param string $format  jpeg|png|webp|avif|jxl.
+	 * @param string $format  jpeg|png|webp|avif.
 	 * @param string $old_ext The file's current extension.
 	 * @return string
 	 */
@@ -121,7 +120,6 @@ class OIS_Optimizer {
 			'png'  => array( 'png' ),
 			'webp' => array( 'webp' ),
 			'avif' => array( 'avif' ),
-			'jxl'  => array( 'jxl' ),
 		);
 		if ( isset( $family[ $format ] ) && in_array( $old_ext, $family[ $format ], true ) ) {
 			return $old_ext;
@@ -131,7 +129,6 @@ class OIS_Optimizer {
 			'png'  => 'png',
 			'webp' => 'webp',
 			'avif' => 'avif',
-			'jxl'  => 'jxl',
 		);
 		return isset( $default[ $format ] ) ? $default[ $format ] : $old_ext;
 	}

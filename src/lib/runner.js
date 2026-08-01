@@ -30,7 +30,7 @@ function settings() {
  * matching setting. PNG has no quality knob, so its defaults pass through
  * untouched.
  *
- * @param {string} format      jpeg|png|webp|avif|jxl.
+ * @param {string} format      jpeg|png|webp|avif.
  * @param {number} qualityFrom The setting value to use for this format's quality.
  * @return {Object} Options object for the worker's `targets[].options`.
  */
@@ -45,10 +45,10 @@ function optionsFor( format, qualityFrom ) {
 /**
  * Build the list of encode targets for one size file: recompress in the
  * file's own format, plus one candidate per next-gen format enabled in
- * settings (WebP / AVIF / JPEG XL) that the file isn't already in. The
- * runner picks whichever candidate comes out smallest.
+ * settings (WebP / AVIF) that the file isn't already in. The runner picks
+ * whichever candidate comes out smallest.
  *
- * @param {string} sourceFormat File's own format (jpeg|png|webp|avif|jxl).
+ * @param {string} sourceFormat File's own format (jpeg|png|webp|avif).
  * @return {Array<{key:string, format:string, options:Object}>} Targets.
  */
 function targetsFor( sourceFormat ) {
@@ -61,10 +61,6 @@ function targetsFor( sourceFormat ) {
 	if ( s.avif && sourceFormat !== 'avif' ) {
 		const avifQuality = typeof s.avifQuality === 'number' ? s.avifQuality : 55;
 		targets.push( { key: 'avif', format: 'avif', options: optionsFor( 'avif', avifQuality ) } );
-	}
-	if ( s.jxl && sourceFormat !== 'jxl' ) {
-		const jxlQuality = typeof s.jxlQuality === 'number' ? s.jxlQuality : quality;
-		targets.push( { key: 'jxl', format: 'jxl', options: optionsFor( 'jxl', jxlQuality ) } );
 	}
 	return targets;
 }

@@ -20,8 +20,11 @@
 	font-display: swap;
 }
 
-.ois-wrap {
-	/* Onylogy Design System tokens (scoped to our screen). */
+:root {
+	/* Onylogy Design System tokens. On :root (not .ois-wrap) so elements
+	   this plugin renders outside the dashboard shell — the Grid view
+	   button and the toast, both appended directly on Media Library /
+	   post-edit screens where .ois-wrap never mounts — can use them too. */
 	--color-black: #131513;
 	--color-grey-700: #292929;
 	--color-grey-600: #505050;
@@ -48,7 +51,9 @@
 	--elev-md: 0 4px 12px rgba( 19, 21, 19, 0.08 );
 
 	--ease: cubic-bezier( 0.2, 0.8, 0.2, 1 );
+}
 
+.ois-wrap {
 	font-family: var( --font-body );
 	color: var( --color-black );
 }
@@ -366,7 +371,6 @@
    might change brightness elsewhere. */
 .ois-format-chip[data-format='webp'].is-active { background: #e6f7f3; color: #12836a; }
 .ois-format-chip[data-format='avif'].is-active { background: #f3eafb; color: #7a3fbe; }
-.ois-format-chip[data-format='jxl'].is-active { background: #fde9ef; color: #c22a63; }
 .ois-format-chip[disabled] {
 	opacity: 0.5;
 	cursor: not-allowed;
@@ -378,6 +382,48 @@
 	margin: 10px 0 0 4px;
 	padding-left: 12px;
 	border-left: 2px solid var( --color-grey-300 );
+}
+
+/* Grid view (and the "Add Media" modal, which renders the same way) has no
+   PHP hook equivalent to List view's media_row_actions, so the button is
+   injected client-side — see watchGrid() in auto-upload.js. Hidden until
+   hover/focus, matching core's own `.check` selection-checkbox pattern that
+   already lives in the same corner of `.attachment-preview`. */
+.ois-grid-action {
+	position: absolute;
+	left: 4px;
+	bottom: 4px;
+	z-index: 10;
+	appearance: none;
+	border: 0;
+	border-radius: var( --radius-pill );
+	padding: 3px 10px;
+	font-family: var( --font-body );
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.6;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 150ms var( --ease );
+}
+.attachment:hover .ois-grid-action,
+.attachment:focus-within .ois-grid-action {
+	opacity: 1;
+}
+.ois-grid-action.ois-row-optimize {
+	background: var( --color-blue );
+	color: var( --color-white );
+}
+.ois-grid-action.ois-row-optimize:hover {
+	background: var( --color-blue-strong );
+}
+.ois-grid-action.ois-row-restore {
+	background: var( --color-white );
+	color: var( --color-grey-700 );
+	box-shadow: var( --elev-sm );
+}
+.ois-grid-action.ois-row-restore:hover {
+	background: var( --color-grey-300 );
 }
 
 /* Toast — fixed to the viewport (unlike the desktop/web app's, which is

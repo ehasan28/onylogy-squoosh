@@ -3,10 +3,6 @@
  *
  * Ported from onylogy-squeeze's src/worker/squeeze.worker.js and extended
  * for standalone desktop use:
- *  - JPEG XL encode + decode added (jxl isn't natively decodable by Chromium,
- *    so jxl sources go through @jsquash/jxl's own WASM decoder instead of
- *    createImageBitmap; every other supported source format still decodes
- *    natively, which is fast and matches what the plugin already proved out).
  *  - Resize now goes through @jsquash/resize (the actual WASM resize methods
  *    Squoosh itself offers: triangle/catrom/mitchell/lanczos3/hqx/magicKernel*)
  *    instead of a plain canvas draw-scale, for real output-quality parity.
@@ -27,10 +23,6 @@ import encodeWebp from '@jsquash/webp/encode';
 import { init as initWebpEnc } from '@jsquash/webp/encode';
 import encodeAvif from '@jsquash/avif/encode';
 import { init as initAvifEnc } from '@jsquash/avif/encode';
-import encodeJxl from '@jsquash/jxl/encode';
-import { init as initJxlEnc } from '@jsquash/jxl/encode';
-import decodeJxl from '@jsquash/jxl/decode';
-import { init as initJxlDec } from '@jsquash/jxl/decode';
 import resizeImage, { initResize, initHqx, initMagicKernel } from '@jsquash/resize';
 
 let wasmBase = '';
@@ -56,9 +48,6 @@ async function ensureEncoder( format ) {
 		case 'avif':
 			await initAvifEnc( undefined, { locateFile: locate } );
 			break;
-		case 'jxl':
-			await initJxlEnc( undefined, { locateFile: locate } );
-			break;
 		case 'png':
 			await initPngEnc( wasmBase + 'squoosh_png_bg.wasm' );
 			break;
@@ -66,19 +55,6 @@ async function ensureEncoder( format ) {
 			throw new Error( 'Unsupported output format: ' + format );
 	}
 	inited[ format ] = true;
-}
-
-/**
- * Ensure the JPEG XL decoder's WASM is initialised (once). Only needed when
- * the *source* file is JPEG XL, since Chromium can't decode it natively.
- */
-async function ensureJxlDecoder() {
-	if ( inited.jxlDecode ) {
-		return;
-	}
-	const locate = ( path ) => wasmBase + path;
-	await initJxlDec( undefined, { locateFile: locate } );
-	inited.jxlDecode = true;
 }
 
 /**
@@ -130,8 +106,6 @@ async function encode( imageData, format, options ) {
 			return encodeWebp( imageData, options );
 		case 'avif':
 			return encodeAvif( imageData, options );
-		case 'jxl':
-			return encodeJxl( imageData, options );
 		case 'png':
 			return encodePng( imageData, options );
 		default:
@@ -145,29 +119,17 @@ async function encode( imageData, format, options ) {
 const OPAQUE_ONLY = { jpeg: true };
 
 /**
- * Decode a source blob into a plain ImageData at native resolution.
- *
- * JPEG XL sources can't be decoded by the browser natively, so they go
- * through @jsquash/jxl's own WASM decoder; every other supported format
- * (jpeg/png/webp/avif) decodes via the native, fast createImageBitmap path.
+ * Decode a source blob into a plain ImageData at native resolution, via the
+ * browser's own createImageBitmap (fast, native for every format this
+ * plugin supports — jpeg/png/webp/avif).
  *
  * @param {Blob}   blob         Source image blob.
- * @param {string} sourceFormat Format key the client already sniffed.
+ * @param {string} sourceFormat Format key the client already sniffed (unused
+ *                              here; kept in the signature to match the
+ *                              caller's message shape).
  * @return {Promise<ImageData>} Native-resolution pixels.
  */
-async function decodeSource( blob, sourceFormat ) {
-	if ( sourceFormat === 'jxl' ) {
-		await ensureJxlDecoder();
-		const buffer = await blob.arrayBuffer();
-		let result;
-		try {
-			result = await decodeJxl( buffer );
-		} catch ( e ) {
-			throw new Error( 'Could not decode this JPEG XL file. It may be corrupt or use an unsupported feature.' );
-		}
-		return new ImageData( new Uint8ClampedArray( result.data ), result.width, result.height );
-	}
-
+async function decodeSource( blob, sourceFormat ) { // eslint-disable-line no-unused-vars
 	let bitmap;
 	try {
 		bitmap = await createImageBitmap( blob );
@@ -295,9 +257,6 @@ self.onmessage = async ( event ) => {
 
 	if ( msg.type === 'decode' ) {
 		// Decode any supported format into raw pixels for on-screen preview.
-		// Used for every format (not just jxl) so the UI never has to rely on
-		// the browser's own <img>/native rendering support, which Chromium
-		// doesn't have for jxl.
 		const { id, blob, sourceFormat } = msg;
 		try {
 			const imageData = await decodeSource( blob, sourceFormat );

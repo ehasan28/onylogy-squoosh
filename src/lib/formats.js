@@ -1,9 +1,9 @@
 /**
  * Format metadata shared between the UI and the worker.
  *
- * Ported from onylogy-squeeze's src/lib/formats.js, extended with
- * JPEG XL and per-codec default option objects lifted directly from each
- * @jsquash/* package's meta.js (the same option sets Squoosh itself uses).
+ * Ported from onylogy-squeeze's src/lib/formats.js, with per-codec default
+ * option objects lifted directly from each @jsquash/* package's meta.js (the
+ * same option sets Squoosh itself uses).
  */
 
 export const FORMATS = {
@@ -98,27 +98,9 @@ export const FORMATS = {
 			lossless: false,
 		},
 	},
-	jxl: {
-		label: 'JPEG XL',
-		mime: 'image/jxl',
-		ext: 'jxl',
-		alpha: true,
-		lossy: true,
-		defaultOptions: {
-			effort: 7,
-			quality: 75,
-			progressive: false,
-			epf: -1,
-			lossyPalette: false,
-			decodingSpeedTier: 0,
-			photonNoiseIso: 0,
-			lossyModular: false,
-			lossless: false,
-		},
-	},
 };
 
-export const OUTPUT_ORDER = [ 'webp', 'avif', 'jxl', 'jpeg', 'png' ];
+export const OUTPUT_ORDER = [ 'webp', 'avif', 'jpeg', 'png' ];
 
 /**
  * Guess the source format key from a File's MIME type / name.
@@ -140,16 +122,13 @@ export function sourceFormat( file ) {
 	if ( mime.includes( 'avif' ) ) {
 		return 'avif';
 	}
-	if ( mime.includes( 'jxl' ) ) {
-		return 'jxl';
-	}
 	const name = ( file.name || '' ).toLowerCase();
 	const m = name.match( /\.([a-z0-9]+)$/ );
 	const ext = m ? m[ 1 ] : '';
 	if ( ext === 'jpg' || ext === 'jpeg' ) {
 		return 'jpeg';
 	}
-	if ( [ 'png', 'webp', 'avif', 'jxl' ].includes( ext ) ) {
+	if ( [ 'png', 'webp', 'avif' ].includes( ext ) ) {
 		return ext;
 	}
 	return 'unknown';

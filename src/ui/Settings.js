@@ -19,14 +19,14 @@ import Toast from './Toast.js';
 // as the desktop/web app's resize presets, based on WordPress core's own
 // default image sizes.
 const RESIZE_PRESETS = [
-	{ key: 'off', label: __( 'Off — never resize', 'onylogy-squoosh' ), value: 0 },
-	{ key: 'thumbnail', label: __( 'Thumbnail (150px)', 'onylogy-squoosh' ), value: 150 },
-	{ key: 'medium', label: __( 'Medium (300px)', 'onylogy-squoosh' ), value: 300 },
-	{ key: 'medium_large', label: __( 'Medium Large (768px)', 'onylogy-squoosh' ), value: 768 },
-	{ key: 'large', label: __( 'Large (1024px)', 'onylogy-squoosh' ), value: 1024 },
-	{ key: 'xlarge', label: __( 'Extra Large (1600px)', 'onylogy-squoosh' ), value: 1600 },
-	{ key: 'xxlarge', label: __( '2x Large (2000px)', 'onylogy-squoosh' ), value: 2000 },
-	{ key: 'custom', label: __( 'Custom', 'onylogy-squoosh' ), value: -1 },
+	{ key: 'off', label: __( 'Off — never resize', 'onylogy-squeeze-wp' ), value: 0 },
+	{ key: 'thumbnail', label: __( 'Thumbnail (150px)', 'onylogy-squeeze-wp' ), value: 150 },
+	{ key: 'medium', label: __( 'Medium (300px)', 'onylogy-squeeze-wp' ), value: 300 },
+	{ key: 'medium_large', label: __( 'Medium Large (768px)', 'onylogy-squeeze-wp' ), value: 768 },
+	{ key: 'large', label: __( 'Large (1024px)', 'onylogy-squeeze-wp' ), value: 1024 },
+	{ key: 'xlarge', label: __( 'Extra Large (1600px)', 'onylogy-squeeze-wp' ), value: 1600 },
+	{ key: 'max', label: __( 'Max (2560px)', 'onylogy-squeeze-wp' ), value: 2560 },
+	{ key: 'custom', label: __( 'Custom', 'onylogy-squeeze-wp' ), value: -1 },
 ];
 
 function presetKeyFor( value ) {
@@ -41,9 +41,7 @@ export default function Settings( { onSaved } ) {
 		webp: !! initial.webp,
 		avif: !! initial.avif,
 		avifQuality: initial.avifQuality ?? 55,
-		jxl: !! initial.jxl,
-		jxlQuality: initial.jxlQuality ?? 75,
-		resizeMax: initial.resizeMax ?? 2560,
+		resizeMax: initial.resizeMax ?? 0,
 		backup: initial.backup !== false,
 		autoOnUpload: initial.autoOnUpload !== false,
 	} );
@@ -60,14 +58,14 @@ export default function Settings( { onSaved } ) {
 			const saved = await apiFetch( { path: '/ois/v1/settings', method: 'POST', data: form } );
 			window.OIS.settings = { ...window.OIS.settings, ...saved };
 			setStatus( 'saved' );
-			setToast( __( 'Settings saved', 'onylogy-squoosh' ) );
+			setToast( __( 'Settings saved', 'onylogy-squeeze-wp' ) );
 			if ( onSaved ) {
 				onSaved( saved );
 			}
 			setTimeout( () => setStatus( '' ), 2000 );
 		} catch ( e ) {
 			setStatus( 'error' );
-			setToast( __( 'Could not save settings', 'onylogy-squoosh' ) );
+			setToast( __( 'Could not save settings', 'onylogy-squeeze-wp' ) );
 		}
 	};
 
@@ -77,7 +75,7 @@ export default function Settings( { onSaved } ) {
 		<div className="ois-settings">
 			<div className="ois-set-row">
 				<label className="ois-set-label">
-					{ __( 'Compression quality', 'onylogy-squoosh' ) }
+					{ __( 'Compression quality', 'onylogy-squeeze-wp' ) }
 					<span className="ois-set-value">{ form.quality }%</span>
 				</label>
 				<input
@@ -88,12 +86,12 @@ export default function Settings( { onSaved } ) {
 					onChange={ ( e ) => set( { quality: parseInt( e.target.value, 10 ) } ) }
 				/>
 				<p className="ois-set-hint">
-					{ __( 'Applies to recompressing the image in its own format. 80 is a good balance of size and quality.', 'onylogy-squoosh' ) }
+					{ __( 'Applies to recompressing the image in its own format. 80 is a good balance of size and quality.', 'onylogy-squeeze-wp' ) }
 				</p>
 			</div>
 
 			<div className="ois-set-row">
-				<label className="ois-set-label">{ __( 'Also try these formats', 'onylogy-squoosh' ) }</label>
+				<label className="ois-set-label">{ __( 'Also try these formats', 'onylogy-squeeze-wp' ) }</label>
 				<div className="ois-format-chip-row">
 					<button
 						type="button"
@@ -111,23 +109,15 @@ export default function Settings( { onSaved } ) {
 					>
 						AVIF
 					</button>
-					<button
-						type="button"
-						className={ 'ois-format-chip' + ( form.jxl ? ' is-active' : '' ) }
-						data-format="jxl"
-						onClick={ () => toggleFormat( 'jxl' ) }
-					>
-						{ __( 'JPEG XL', 'onylogy-squoosh' ) }
-					</button>
 				</div>
 				<p className="ois-set-hint">
-					{ __( 'For each image, every enabled format is tried and whichever comes out smallest replaces the file in your Media Library — so your theme, page builder and everything else serves it automatically. No front-end setup needed.', 'onylogy-squoosh' ) }
+					{ __( 'For each image, every enabled format is tried and whichever comes out smallest replaces the file in your Media Library — so your theme, page builder and everything else serves it automatically. No front-end setup needed.', 'onylogy-squeeze-wp' ) }
 				</p>
 
 				{ form.avif && (
 					<div className="ois-quality-sub">
 						<label className="ois-set-label">
-							{ __( 'AVIF quality', 'onylogy-squoosh' ) }
+							{ __( 'AVIF quality', 'onylogy-squeeze-wp' ) }
 							<span className="ois-set-value">{ form.avifQuality }%</span>
 						</label>
 						<input
@@ -137,24 +127,7 @@ export default function Settings( { onSaved } ) {
 							value={ form.avifQuality }
 							onChange={ ( e ) => set( { avifQuality: parseInt( e.target.value, 10 ) } ) }
 						/>
-						<p className="ois-set-hint">{ __( 'AVIF looks right at a lower number than JPEG/WebP — 55 is a good starting point.', 'onylogy-squoosh' ) }</p>
-					</div>
-				) }
-
-				{ form.jxl && (
-					<div className="ois-quality-sub">
-						<label className="ois-set-label">
-							{ __( 'JPEG XL quality', 'onylogy-squoosh' ) }
-							<span className="ois-set-value">{ form.jxlQuality }%</span>
-						</label>
-						<input
-							type="range"
-							min="1"
-							max="100"
-							value={ form.jxlQuality }
-							onChange={ ( e ) => set( { jxlQuality: parseInt( e.target.value, 10 ) } ) }
-						/>
-						<p className="ois-set-hint">{ __( 'JPEG XL encodes slower than the other formats — expect bulk runs to take longer with it enabled.', 'onylogy-squoosh' ) }</p>
+						<p className="ois-set-hint">{ __( 'AVIF looks right at a lower number than JPEG/WebP — 55 is a good starting point.', 'onylogy-squeeze-wp' ) }</p>
 					</div>
 				) }
 			</div>
@@ -166,12 +139,12 @@ export default function Settings( { onSaved } ) {
 						checked={ form.autoOnUpload }
 						onChange={ ( e ) => set( { autoOnUpload: e.target.checked } ) }
 					/>
-					{ __( 'Automatically optimize new uploads', 'onylogy-squoosh' ) }
+					{ __( 'Automatically optimize new uploads', 'onylogy-squeeze-wp' ) }
 				</label>
 			</div>
 
 			<div className="ois-set-row">
-				<label className="ois-set-label">{ __( 'Resize large images to', 'onylogy-squoosh' ) }</label>
+				<label className="ois-set-label">{ __( 'Resize large images to', 'onylogy-squeeze-wp' ) }</label>
 				<select
 					value={ presetKey }
 					onChange={ ( e ) => {
@@ -198,7 +171,7 @@ export default function Settings( { onSaved } ) {
 					/>
 				) }
 				<p className="ois-set-hint">
-					{ __( 'Applies to the full-size image only (thumbnails are unaffected). Never upscales.', 'onylogy-squoosh' ) }
+					{ __( 'Applies to the full-size image only (thumbnails are unaffected). Never upscales.', 'onylogy-squeeze-wp' ) }
 				</p>
 			</div>
 
@@ -209,16 +182,16 @@ export default function Settings( { onSaved } ) {
 						checked={ form.backup }
 						onChange={ ( e ) => set( { backup: e.target.checked } ) }
 					/>
-					{ __( 'Keep a backup of originals so I can restore', 'onylogy-squoosh' ) }
+					{ __( 'Keep a backup of originals so I can restore', 'onylogy-squeeze-wp' ) }
 				</label>
 				<p className="ois-set-hint">
-					{ __( 'Optimizing replaces the file in your Media Library (e.g. photo.png becomes photo.webp). The backup is what lets you undo that — without it, "Restore original" has nothing to restore from.', 'onylogy-squoosh' ) }
+					{ __( 'Optimizing replaces the file in your Media Library (e.g. photo.png becomes photo.webp). The backup is what lets you undo that — without it, "Restore original" has nothing to restore from.', 'onylogy-squeeze-wp' ) }
 				</p>
 			</div>
 
 			<div className="ois-set-actions">
 				<button type="button" className="button button-primary" onClick={ save } disabled={ status === 'saving' }>
-					{ status === 'saving' ? __( 'Saving…', 'onylogy-squoosh' ) : __( 'Save settings', 'onylogy-squoosh' ) }
+					{ status === 'saving' ? __( 'Saving…', 'onylogy-squeeze-wp' ) : __( 'Save settings', 'onylogy-squeeze-wp' ) }
 				</button>
 			</div>
 

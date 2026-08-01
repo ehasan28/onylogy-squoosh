@@ -10,6 +10,7 @@
 
 import apiFetch from '@wordpress/api-fetch';
 import { fetchItem, optimizeAttachment } from './lib/runner.js';
+import './index.css';
 
 // Serialize optimizations so overlapping uploads don't thrash the single worker.
 let chain = Promise.resolve();
@@ -126,10 +127,75 @@ function hookRowActions() {
 			}
 		} catch ( err ) {
 			link.textContent = original;
-			showToast( 'Onylogy Squoosh: ' + ( err && err.message ? err.message : 'failed' ) );
+			showToast( 'Onylogy Squeeze: ' + ( err && err.message ? err.message : 'failed' ) );
 		}
 	} );
 }
 
+/**
+ * Grid view: List view gets its Optimize/Restore link for free via PHP's
+ * `media_row_actions` filter, but Grid view (and the "Add Media" modal,
+ * which renders the same way) is a Backbone view with no such hook — so we
+ * decorate the rendered thumbnails ourselves. Status per attachment comes
+ * from `oisPending`, added to each attachment's JS model server-side by
+ * OIS_Plugin::prepare_for_js() (see includes/class-plugin.php).
+ *
+ * @param {Element} el One `.attachment` thumbnail element.
+ */
+function decorateGridAttachment( el ) {
+	if ( el.querySelector( '.ois-grid-action' ) ) {
+		return;
+	}
+	const id = parseInt( el.getAttribute( 'data-id' ), 10 );
+	if ( ! id ) {
+		return;
+	}
+	const model = window.wp && wp.media && wp.media.attachment ? wp.media.attachment( id ) : null;
+	const attrs = model ? model.toJSON() : {};
+	if ( 'image' !== attrs.type || ! ( 'oisPending' in attrs ) ) {
+		return;
+	}
+	const preview = el.querySelector( '.attachment-preview' );
+	if ( ! preview ) {
+		return;
+	}
+	const btn = document.createElement( 'button' );
+	btn.type = 'button';
+	btn.setAttribute( 'data-id', String( id ) );
+	btn.className = attrs.oisPending
+		? 'ois-grid-action ois-row-optimize'
+		: 'ois-grid-action ois-row-restore';
+	btn.textContent = attrs.oisPending ? 'Optimize' : 'Restore';
+	preview.appendChild( btn );
+}
+
+/**
+ * Watch the Grid view/modal attachments list for thumbnails as Backbone
+ * renders them (initial load, scrolling, and re-filtering all add nodes
+ * after this script has already run once).
+ */
+function watchGrid() {
+	const container = document.querySelector( '.attachments-browser .attachments, .media-frame-content .attachments' );
+	if ( ! container ) {
+		window.setTimeout( watchGrid, 600 );
+		return;
+	}
+	container.querySelectorAll( '.attachment' ).forEach( decorateGridAttachment );
+	new MutationObserver( ( mutations ) => {
+		mutations.forEach( ( m ) => {
+			m.addedNodes.forEach( ( node ) => {
+				if ( node.nodeType !== 1 ) {
+					return;
+				}
+				if ( node.classList.contains( 'attachment' ) ) {
+					decorateGridAttachment( node );
+				}
+				node.querySelectorAll( '.attachment' ).forEach( decorateGridAttachment );
+			} );
+		} );
+	} ).observe( container, { childList: true, subtree: true } );
+}
+
 hookUploader();
 hookRowActions();
+watchGrid();

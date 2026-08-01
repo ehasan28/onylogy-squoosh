@@ -2,7 +2,7 @@
 /**
  * Main plugin bootstrap: loads dependencies and wires up hooks.
  *
- * @package Onylogy_Squoosh
+ * @package Onylogy_Squeeze
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -97,6 +97,7 @@ final class OIS_Plugin {
 	private function hooks() {
 		add_filter( 'plugin_action_links_' . OIS_BASENAME, array( $this, 'action_links' ) );
 		add_filter( 'media_row_actions', array( $this, 'row_actions' ), 10, 2 );
+		add_filter( 'wp_prepare_attachment_for_js', array( $this, 'prepare_for_js' ), 10, 2 );
 	}
 
 	/**
@@ -106,8 +107,8 @@ final class OIS_Plugin {
 	 * @return array
 	 */
 	public function action_links( $links ) {
-		$url  = admin_url( 'upload.php?page=onylogy-squoosh' );
-		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squoosh' ) . '</a>';
+		$url  = admin_url( 'upload.php?page=onylogy-squeeze-wp' );
+		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squeeze-wp' ) . '</a>';
 		array_unshift( $links, $link );
 		return $links;
 	}
@@ -127,16 +128,33 @@ final class OIS_Plugin {
 			$actions['ois_optimize'] = sprintf(
 				'<a href="#" class="ois-row-optimize" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Optimize', 'onylogy-squoosh' )
+				esc_html__( 'Optimize', 'onylogy-squeeze-wp' )
 			);
 		} else {
 			$actions['ois_restore'] = sprintf(
 				'<a href="#" class="ois-row-restore" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Restore original', 'onylogy-squoosh' )
+				esc_html__( 'Restore original', 'onylogy-squeeze-wp' )
 			);
 		}
 		return $actions;
+	}
+
+	/**
+	 * Expose pending/optimized status on each image's JS-side attachment
+	 * model, so Grid view (Backbone, no `media_row_actions` hook available)
+	 * can render an Optimize/Restore button per thumbnail the same way List
+	 * view already does via row_actions() above.
+	 *
+	 * @param array   $response   Attachment data sent to the browser.
+	 * @param WP_Post $attachment Attachment.
+	 * @return array
+	 */
+	public function prepare_for_js( $response, $attachment ) {
+		if ( wp_attachment_is_image( $attachment->ID ) ) {
+			$response['oisPending'] = $this->attachments->is_pending( $attachment->ID );
+		}
+		return $response;
 	}
 
 	/**

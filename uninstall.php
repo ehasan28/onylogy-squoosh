@@ -7,7 +7,7 @@
  * could remove the images your site serves. Use each image's "Restore original"
  * action before uninstalling if you want originals back.
  *
- * @package Onylogy_Squoosh
+ * @package Onylogy_Squeeze
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;

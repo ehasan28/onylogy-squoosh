@@ -40,20 +40,20 @@ export default function Dashboard() {
 		await loadStats();
 
 		if ( stopRef.current ) {
-			setToast( __( 'Stopped', 'onylogy-squoosh' ) );
+			setToast( __( 'Stopped', 'onylogy-squeeze-wp' ) );
 		} else if ( result.done > 0 ) {
 			setToast(
 				result.failed > 0
 					? sprintf(
 						/* translators: 1: optimized count, 2: bytes saved, 3: failed count. */
-						__( 'Optimized %1$d images, saved %2$s (%3$d failed)', 'onylogy-squoosh' ),
+						__( 'Optimized %1$d images, saved %2$s (%3$d failed)', 'onylogy-squeeze-wp' ),
 						result.done,
 						formatBytes( result.totalSaved ),
 						result.failed
 					)
 					: sprintf(
 						/* translators: 1: optimized count, 2: bytes saved. */
-						__( 'Optimized %1$d images, saved %2$s', 'onylogy-squoosh' ),
+						__( 'Optimized %1$d images, saved %2$s', 'onylogy-squeeze-wp' ),
 						result.done,
 						formatBytes( result.totalSaved )
 					)
@@ -66,10 +66,10 @@ export default function Dashboard() {
 	};
 
 	if ( ! stats ) {
-		return <p className="ois-loading">{ __( 'Loading…', 'onylogy-squoosh' ) }</p>;
+		return <p className="ois-loading">{ __( 'Loading…', 'onylogy-squeeze-wp' ) }</p>;
 	}
 	if ( stats.error ) {
-		return <p className="ois-error">{ __( 'Could not load statistics.', 'onylogy-squoosh' ) }</p>;
+		return <p className="ois-error">{ __( 'Could not load statistics.', 'onylogy-squeeze-wp' ) }</p>;
 	}
 
 	const percent = stats.bytes_original > 0
@@ -81,20 +81,20 @@ export default function Dashboard() {
 			<div className="ois-cards">
 				<div className="ois-card ois-card--hero">
 					<span className="ois-card__num">{ formatBytes( stats.bytes_saved ) }</span>
-					<span className="ois-card__label">{ __( 'Total saved', 'onylogy-squoosh' ) }</span>
-					<span className="ois-card__sub">{ percent }% { __( 'smaller', 'onylogy-squoosh' ) }</span>
+					<span className="ois-card__label">{ __( 'Total saved', 'onylogy-squeeze-wp' ) }</span>
+					<span className="ois-card__sub">{ percent }% { __( 'smaller', 'onylogy-squeeze-wp' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.optimized }</span>
-					<span className="ois-card__label">{ __( 'Optimized', 'onylogy-squoosh' ) }</span>
+					<span className="ois-card__label">{ __( 'Optimized', 'onylogy-squeeze-wp' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.pending }</span>
-					<span className="ois-card__label">{ __( 'Pending', 'onylogy-squoosh' ) }</span>
+					<span className="ois-card__label">{ __( 'Pending', 'onylogy-squeeze-wp' ) }</span>
 				</div>
 				<div className="ois-card">
 					<span className="ois-card__num">{ stats.images_total }</span>
-					<span className="ois-card__label">{ __( 'Images total', 'onylogy-squoosh' ) }</span>
+					<span className="ois-card__label">{ __( 'Images total', 'onylogy-squeeze-wp' ) }</span>
 				</div>
 			</div>
 
@@ -105,19 +105,19 @@ export default function Dashboard() {
 						<span>
 							{ sprintf(
 								/* translators: 1: done, 2: total. */
-								__( '%1$d of %2$d done', 'onylogy-squoosh' ),
+								__( '%1$d of %2$d done', 'onylogy-squeeze-wp' ),
 								progress.done + progress.failed,
 								progress.total
 							) }
 							{ progress.failed > 0 &&
 								' · ' + sprintf(
 									/* translators: %d: failures. */
-									__( '%d failed', 'onylogy-squoosh' ),
+									__( '%d failed', 'onylogy-squeeze-wp' ),
 									progress.failed
 								) }
 						</span>
 						<span className="ois-run__saved">
-							{ __( 'Saved this run:', 'onylogy-squoosh' ) }{ ' ' }
+							{ __( 'Saved this run:', 'onylogy-squeeze-wp' ) }{ ' ' }
 							<strong>{ formatBytes( progress.totalSaved ) }</strong>
 						</span>
 					</div>
@@ -138,19 +138,19 @@ export default function Dashboard() {
 						{ stats.pending > 0
 							? sprintf(
 								/* translators: %d: pending count. */
-								__( 'Optimize all %d images', 'onylogy-squoosh' ),
+								__( 'Optimize all %d images', 'onylogy-squeeze-wp' ),
 								stats.pending
 							)
-							: __( 'Everything is optimized 🎉', 'onylogy-squoosh' ) }
+							: __( 'Everything is optimized 🎉', 'onylogy-squeeze-wp' ) }
 					</button>
 				) : (
 					<button type="button" className="button button-hero" onClick={ stop }>
-						{ __( 'Stop', 'onylogy-squoosh' ) }
+						{ __( 'Stop', 'onylogy-squeeze-wp' ) }
 					</button>
 				) }
 				{ running && (
 					<p className="ois-dash__note">
-						{ __( 'Keep this tab open until it finishes — optimization runs in your browser.', 'onylogy-squoosh' ) }
+						{ __( 'Keep this tab open until it finishes — optimization runs in your browser.', 'onylogy-squeeze-wp' ) }
 					</p>
 				) }
 			</div>

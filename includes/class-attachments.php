@@ -4,7 +4,7 @@
  * every intermediate thumbnail) that the optimizer works on. Also owns the
  * per-attachment optimization record stored in the `_ois_data` post meta.
  *
- * @package Onylogy_Squoosh
+ * @package Onylogy_Squeeze
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,13 +17,9 @@ class OIS_Attachments {
 	const META_KEY = '_ois_data';
 
 	/**
-	 * Formats we can decode+re-encode. gif/svg are skipped. jxl as a *source*
-	 * is a rare edge case (WordPress core has no built-in image/jxl MIME
-	 * allowlist entry, so jxl files don't normally reach the library through
-	 * the standard uploader) but is included here for consistency with jxl
-	 * as an output format and in case a site enables jxl uploads separately.
+	 * Formats we can decode+re-encode. gif/svg are skipped.
 	 */
-	const OPTIMIZABLE = array( 'jpeg', 'png', 'webp', 'avif', 'jxl' );
+	const OPTIMIZABLE = array( 'jpeg', 'png', 'webp', 'avif' );
 
 	/**
 	 * Normalize a file extension to a format key.
@@ -36,7 +32,7 @@ class OIS_Attachments {
 		if ( 'jpg' === $ext || 'jpeg' === $ext ) {
 			return 'jpeg';
 		}
-		if ( in_array( $ext, array( 'png', 'webp', 'avif', 'jxl' ), true ) ) {
+		if ( in_array( $ext, array( 'png', 'webp', 'avif' ), true ) ) {
 			return $ext;
 		}
 		return '';
@@ -146,7 +142,7 @@ class OIS_Attachments {
 				array(
 					'post_type'      => 'attachment',
 					'post_status'    => 'inherit',
-					'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/jxl' ),
+					'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/webp', 'image/avif' ),
 					'posts_per_page' => 20,
 					'fields'         => 'ids',
 					'orderby'        => 'ID',

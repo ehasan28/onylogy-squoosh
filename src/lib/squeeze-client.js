@@ -4,7 +4,7 @@
  *
  * Upgraded to match onylogy-squeeze's current worker contract (full
  * per-format options objects instead of a single quality number, explicit
- * `sourceFormat`, JPEG XL support, `decode` for pixels) — see
+ * `sourceFormat`, `decode` for pixels) — see
  * ../worker/squeeze.worker.js. `wasmBase` resolution stays the
  * WordPress-specific line: derived from `self.OIS.pluginUrl` + `build/wasm/`,
  * set by admin/class-admin-page.php's wp_localize_script().
@@ -101,9 +101,8 @@ export async function optimize( file, options ) {
 }
 
 /**
- * Decode any supported image (including jxl, which the browser can't render
- * natively) into raw pixels. Not used by the bulk/auto-upload flow today, but
- * kept available for any future preview feature.
+ * Decode any supported image into raw pixels. Not used by the bulk/auto-
+ * upload flow today, but kept available for any future preview feature.
  *
  * @param {Blob}   file        Source image.
  * @param {string} [sourceFmt] Format key; auto-detected from `file` when omitted.

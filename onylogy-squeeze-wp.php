@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       Onylogy Squoosh
- * Plugin URI:        https://github.com/ehasan28/onylogy-squoosh
- * Description:        Automatically compress, resize and convert your Media Library to WebP/AVIF/JPEG XL at Squoosh-level quality — in place, so every theme and page builder serves the optimized file automatically. All processing runs in your browser via WebAssembly — no server image library, no cloud, no per-image cost.
+ * Plugin Name:       Onylogy Squeeze
+ * Plugin URI:        https://github.com/ehasan28/onylogy-squeeze-wp
+ * Description:        Automatically compress, resize and convert your Media Library to WebP/AVIF at Squoosh-level quality — in place, so every theme and page builder serves the optimized file automatically. All processing runs in your browser via WebAssembly — no server image library, no cloud, no per-image cost.
  * Version:           3.0.0
  * Requires at least: 6.6
  * Requires PHP:      7.4
@@ -10,9 +10,9 @@
  * Author URI:        https://onylogy.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       onylogy-squoosh
+ * Text Domain:       onylogy-squeeze-wp
  *
- * @package Onylogy_Squoosh
+ * @package Onylogy_Squeeze
  */
 
 // Exit if accessed directly.
