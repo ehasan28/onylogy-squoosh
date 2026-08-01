@@ -10,7 +10,7 @@
  * Author URI:        https://onylogy.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       onylogy-squeeze-wp
+ * Text Domain:       onylogy-squeeze
  *
  * @package Onylogy_Squeeze
  */

@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class OIS_Admin_Page {
 
-	const PAGE_SLUG   = 'onylogy-squeeze-wp';
-	const HOOK_SUFFIX = 'media_page_onylogy-squeeze-wp';
+	const PAGE_SLUG   = 'onylogy-squeeze';
+	const HOOK_SUFFIX = 'media_page_onylogy-squeeze';
 
 	/**
 	 * Settings.
@@ -50,8 +50,8 @@ class OIS_Admin_Page {
 	public function menu() {
 		add_submenu_page(
 			'upload.php',
-			__( 'Onylogy Squeeze', 'onylogy-squeeze-wp' ),
-			__( 'Squeeze', 'onylogy-squeeze-wp' ),
+			__( 'Onylogy Squeeze', 'onylogy-squeeze' ),
+			__( 'Squeeze', 'onylogy-squeeze' ),
 			'upload_files',
 			self::PAGE_SLUG,
 			array( $this, 'render' )
@@ -138,9 +138,9 @@ class OIS_Admin_Page {
 			return;
 		}
 		echo '<div class="wrap ois-wrap">';
-		echo '<h1 class="ois-title">' . esc_html__( 'Onylogy Squeeze', 'onylogy-squeeze-wp' );
-		echo ' <a class="ois-badge" href="https://onylogy.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Onylogy Studio', 'onylogy-squeeze-wp' ) . '</a></h1>';
-		echo '<p class="ois-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-squeeze-wp' ) . '</p>';
+		echo '<h1 class="ois-title">' . esc_html__( 'Onylogy Squeeze', 'onylogy-squeeze' );
+		echo ' <a class="ois-badge" href="https://onylogy.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Onylogy Studio', 'onylogy-squeeze' ) . '</a></h1>';
+		echo '<p class="ois-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-squeeze' ) . '</p>';
 		echo '<div id="ois-app"></div>';
 		echo '</div>';
 	}

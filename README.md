@@ -41,8 +41,8 @@ npm run start      # watch mode
 ## Structure
 
 ```
-onylogy-squeeze-wp/
-├── onylogy-squeeze-wp.php   # main file: headers, constants, activation
+onylogy-squeeze/
+├── onylogy-squeeze.php   # main file: headers, constants, activation
 ├── includes/
 │   ├── class-plugin.php        # bootstrap + row actions
 │   ├── class-settings.php      # single-option settings store

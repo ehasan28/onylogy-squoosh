@@ -23,14 +23,14 @@ export default function App() {
 					className={ 'ois-tab' + ( tab === 'dashboard' ? ' is-active' : '' ) }
 					onClick={ () => setTab( 'dashboard' ) }
 				>
-					{ __( 'Bulk Optimize', 'onylogy-squeeze-wp' ) }
+					{ __( 'Bulk Optimize', 'onylogy-squeeze' ) }
 				</button>
 				<button
 					type="button"
 					className={ 'ois-tab' + ( tab === 'settings' ? ' is-active' : '' ) }
 					onClick={ () => setTab( 'settings' ) }
 				>
-					{ __( 'Settings', 'onylogy-squeeze-wp' ) }
+					{ __( 'Settings', 'onylogy-squeeze' ) }
 				</button>
 			</nav>
 

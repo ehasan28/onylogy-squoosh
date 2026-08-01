@@ -107,8 +107,8 @@ final class OIS_Plugin {
 	 * @return array
 	 */
 	public function action_links( $links ) {
-		$url  = admin_url( 'upload.php?page=onylogy-squeeze-wp' );
-		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squeeze-wp' ) . '</a>';
+		$url  = admin_url( 'upload.php?page=onylogy-squeeze' );
+		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squeeze' ) . '</a>';
 		array_unshift( $links, $link );
 		return $links;
 	}
@@ -128,13 +128,13 @@ final class OIS_Plugin {
 			$actions['ois_optimize'] = sprintf(
 				'<a href="#" class="ois-row-optimize" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Optimize', 'onylogy-squeeze-wp' )
+				esc_html__( 'Optimize', 'onylogy-squeeze' )
 			);
 		} else {
 			$actions['ois_restore'] = sprintf(
 				'<a href="#" class="ois-row-restore" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Restore original', 'onylogy-squeeze-wp' )
+				esc_html__( 'Restore original', 'onylogy-squeeze' )
 			);
 		}
 		return $actions;

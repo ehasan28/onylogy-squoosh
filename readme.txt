@@ -33,7 +33,7 @@ Bulk-optimizing a large *existing* library runs in your browser, so keep the tab
 
 == Installation ==
 
-1. Upload the `onylogy-squeeze-wp` folder to `/wp-content/plugins/`, or install the zip via Plugins → Add New → Upload.
+1. Upload the `onylogy-squeeze` folder to `/wp-content/plugins/`, or install the zip via Plugins → Add New → Upload.
 2. Activate the plugin.
 3. Go to **Media → Squeeze** and click **Optimize all**. New uploads are handled automatically.
 
