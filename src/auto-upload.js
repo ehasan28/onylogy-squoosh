@@ -19,24 +19,24 @@ let chain = Promise.resolve();
  * A brief, fixed-position confirmation toast — plain DOM, not a Preact
  * component, since this file runs on every admin screen (not just the
  * Dashboard) and has no other reason to pull in rendering machinery.
- * Visually matches ui/Toast.js (same .ois-toast class from index.css).
+ * Visually matches ui/Toast.js (same .onyio-toast class from index.css).
  *
  * @param {string} message Text to show.
  */
 function showToast( message ) {
-	const existing = document.querySelector( '.ois-toast' );
+	const existing = document.querySelector( '.onyio-toast' );
 	if ( existing ) {
 		existing.remove();
 	}
 	const el = document.createElement( 'div' );
-	el.className = 'ois-toast';
+	el.className = 'onyio-toast';
 	el.textContent = message;
 	document.body.appendChild( el );
 	window.setTimeout( () => el.remove(), 3500 );
 }
 
 function queueOptimize( attachmentId ) {
-	const settings = ( window.OIS && window.OIS.settings ) || {};
+	const settings = ( window.ONYIO && window.ONYIO.settings ) || {};
 	if ( settings.autoOnUpload === false ) {
 		return;
 	}
@@ -72,10 +72,10 @@ function hookUploader() {
 		return;
 	}
 	const proto = wp.Uploader.prototype;
-	if ( proto.__oisHooked ) {
+	if ( proto.__onyioHooked ) {
 		return;
 	}
-	proto.__oisHooked = true;
+	proto.__onyioHooked = true;
 
 	const originalInit = proto.init;
 	proto.init = function () {
@@ -99,8 +99,8 @@ function hookUploader() {
  */
 function hookRowActions() {
 	document.addEventListener( 'click', async ( e ) => {
-		const opt = e.target.closest( '.ois-row-optimize' );
-		const res = e.target.closest( '.ois-row-restore' );
+		const opt = e.target.closest( '.onyio-row-optimize' );
+		const res = e.target.closest( '.onyio-row-restore' );
 		if ( ! opt && ! res ) {
 			return;
 		}
@@ -121,13 +121,13 @@ function hookRowActions() {
 				link.textContent = 'Optimized ✓';
 				showToast( 'Image optimized' );
 			} else {
-				await apiFetch( { path: '/ois/v1/restore', method: 'POST', data: { attachment_id: id } } );
+				await apiFetch( { path: '/onyio/v1/restore', method: 'POST', data: { attachment_id: id } } );
 				link.textContent = 'Restored ✓';
 				showToast( 'Original restored' );
 			}
 		} catch ( err ) {
 			link.textContent = original;
-			showToast( 'Onylogy Squeeze: ' + ( err && err.message ? err.message : 'failed' ) );
+			showToast( 'Onylogy Image Optimizer: ' + ( err && err.message ? err.message : 'failed' ) );
 		}
 	} );
 }
@@ -137,13 +137,13 @@ function hookRowActions() {
  * `media_row_actions` filter, but Grid view (and the "Add Media" modal,
  * which renders the same way) is a Backbone view with no such hook — so we
  * decorate the rendered thumbnails ourselves. Status per attachment comes
- * from `oisPending`, added to each attachment's JS model server-side by
- * OIS_Plugin::prepare_for_js() (see includes/class-plugin.php).
+ * from `onyioPending`, added to each attachment's JS model server-side by
+ * ONYIO_Plugin::prepare_for_js() (see includes/class-plugin.php).
  *
  * @param {Element} el One `.attachment` thumbnail element.
  */
 function decorateGridAttachment( el ) {
-	if ( el.querySelector( '.ois-grid-action' ) ) {
+	if ( el.querySelector( '.onyio-grid-action' ) ) {
 		return;
 	}
 	const id = parseInt( el.getAttribute( 'data-id' ), 10 );
@@ -152,7 +152,7 @@ function decorateGridAttachment( el ) {
 	}
 	const model = window.wp && wp.media && wp.media.attachment ? wp.media.attachment( id ) : null;
 	const attrs = model ? model.toJSON() : {};
-	if ( 'image' !== attrs.type || ! ( 'oisPending' in attrs ) ) {
+	if ( 'image' !== attrs.type || ! ( 'onyioPending' in attrs ) ) {
 		return;
 	}
 	const preview = el.querySelector( '.attachment-preview' );
@@ -162,10 +162,10 @@ function decorateGridAttachment( el ) {
 	const btn = document.createElement( 'button' );
 	btn.type = 'button';
 	btn.setAttribute( 'data-id', String( id ) );
-	btn.className = attrs.oisPending
-		? 'ois-grid-action ois-row-optimize'
-		: 'ois-grid-action ois-row-restore';
-	btn.textContent = attrs.oisPending ? 'Optimize' : 'Restore';
+	btn.className = attrs.onyioPending
+		? 'onyio-grid-action onyio-row-optimize'
+		: 'onyio-grid-action onyio-row-restore';
+	btn.textContent = attrs.onyioPending ? 'Optimize' : 'Restore';
 	preview.appendChild( btn );
 }
 

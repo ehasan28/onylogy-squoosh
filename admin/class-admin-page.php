@@ -1,9 +1,9 @@
 <?php
 /**
- * Admin: the Media → Squeeze dashboard, plus enqueuing the auto-on-upload
- * + row-action script on the Media Library / editor screens.
+ * Admin: the Media → Image Optimizer dashboard, plus enqueuing the
+ * auto-on-upload + row-action script on the Media Library / editor screens.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,30 +11,30 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Admin controller.
  */
-class OIS_Admin_Page {
+class ONYIO_Admin_Page {
 
-	const PAGE_SLUG   = 'onylogy-squeeze';
-	const HOOK_SUFFIX = 'media_page_onylogy-squeeze';
+	const PAGE_SLUG   = 'onylogy-image-optimizer';
+	const HOOK_SUFFIX = 'media_page_onylogy-image-optimizer';
 
 	/**
 	 * Settings.
 	 *
-	 * @var OIS_Settings
+	 * @var ONYIO_Settings
 	 */
 	private $settings;
 
 	/**
 	 * Attachments helper.
 	 *
-	 * @var OIS_Attachments
+	 * @var ONYIO_Attachments
 	 */
 	private $attachments;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param OIS_Settings    $settings    Settings.
-	 * @param OIS_Attachments $attachments Attachments helper.
+	 * @param ONYIO_Settings    $settings    Settings.
+	 * @param ONYIO_Attachments $attachments Attachments helper.
 	 */
 	public function __construct( $settings, $attachments ) {
 		$this->settings    = $settings;
@@ -50,8 +50,8 @@ class OIS_Admin_Page {
 	public function menu() {
 		add_submenu_page(
 			'upload.php',
-			__( 'Onylogy Squeeze', 'onylogy-squeeze' ),
-			__( 'Squeeze', 'onylogy-squeeze' ),
+			__( 'Onylogy Image Optimizer', 'onylogy-image-optimizer' ),
+			__( 'Image Optimizer', 'onylogy-image-optimizer' ),
 			'upload_files',
 			self::PAGE_SLUG,
 			array( $this, 'render' )
@@ -65,8 +65,8 @@ class OIS_Admin_Page {
 	 */
 	private function boot_data() {
 		return array(
-			'pluginUrl' => esc_url_raw( OIS_URL ),
-			'version'   => OIS_VERSION,
+			'pluginUrl' => esc_url_raw( ONYIO_URL ),
+			'version'   => ONYIO_VERSION,
 			'settings'  => $this->settings->all(),
 		);
 	}
@@ -78,10 +78,10 @@ class OIS_Admin_Page {
 	 * @return array
 	 */
 	private function asset( $entry ) {
-		$file = OIS_DIR . 'build/' . $entry . '.asset.php';
+		$file = ONYIO_DIR . 'build/' . $entry . '.asset.php';
 		return file_exists( $file )
 			? require $file
-			: array( 'dependencies' => array(), 'version' => OIS_VERSION );
+			: array( 'dependencies' => array(), 'version' => ONYIO_VERSION );
 	}
 
 	/**
@@ -106,14 +106,14 @@ class OIS_Admin_Page {
 	private function enqueue_app() {
 		$asset = $this->asset( 'index' );
 
-		wp_enqueue_script( 'ois-app', OIS_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
-		wp_localize_script( 'ois-app', 'OIS', $this->boot_data() );
-		if ( file_exists( OIS_DIR . 'build/index.css' ) ) {
+		wp_enqueue_script( 'onyio-app', ONYIO_URL . 'build/index.js', $asset['dependencies'], $asset['version'], true );
+		wp_localize_script( 'onyio-app', 'ONYIO', $this->boot_data() );
+		if ( file_exists( ONYIO_DIR . 'build/index.css' ) ) {
 			// Fonts (Bricolage Grotesque + Montserrat) are self-hosted via
 			// @font-face inside build/index.css itself — no external request.
-			wp_enqueue_style( 'ois-app', OIS_URL . 'build/index.css', array(), $asset['version'] );
+			wp_enqueue_style( 'onyio-app', ONYIO_URL . 'build/index.css', array(), $asset['version'] );
 		}
-		wp_enqueue_style( 'ois-admin', OIS_URL . 'assets/css/admin.css', array(), OIS_VERSION );
+		wp_enqueue_style( 'onyio-admin', ONYIO_URL . 'assets/css/admin.css', array(), ONYIO_VERSION );
 	}
 
 	/**
@@ -121,27 +121,27 @@ class OIS_Admin_Page {
 	 */
 	private function enqueue_auto() {
 		$asset = $this->asset( 'auto-upload' );
-		wp_enqueue_script( 'ois-auto', OIS_URL . 'build/auto-upload.js', $asset['dependencies'], $asset['version'], true );
-		wp_localize_script( 'ois-auto', 'OIS', $this->boot_data() );
-		if ( file_exists( OIS_DIR . 'build/auto-upload.css' ) ) {
+		wp_enqueue_script( 'onyio-auto', ONYIO_URL . 'build/auto-upload.js', $asset['dependencies'], $asset['version'], true );
+		wp_localize_script( 'onyio-auto', 'ONYIO', $this->boot_data() );
+		if ( file_exists( ONYIO_DIR . 'build/auto-upload.css' ) ) {
 			// Styles the toast and the Grid view Optimize/Restore button —
 			// both rendered outside the dashboard shell on this screen.
-			wp_enqueue_style( 'ois-auto', OIS_URL . 'build/auto-upload.css', array(), $asset['version'] );
+			wp_enqueue_style( 'onyio-auto', ONYIO_URL . 'build/auto-upload.css', array(), $asset['version'] );
 		}
 	}
 
 	/**
-	 * Render the dashboard page shell (React mounts into #ois-app).
+	 * Render the dashboard page shell (React mounts into #onyio-app).
 	 */
 	public function render() {
 		if ( ! current_user_can( 'upload_files' ) ) {
 			return;
 		}
-		echo '<div class="wrap ois-wrap">';
-		echo '<h1 class="ois-title">' . esc_html__( 'Onylogy Squeeze', 'onylogy-squeeze' );
-		echo ' <a class="ois-badge" href="https://onylogy.com" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Onylogy Studio', 'onylogy-squeeze' ) . '</a></h1>';
-		echo '<p class="ois-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-squeeze' ) . '</p>';
-		echo '<div id="ois-app"></div>';
+		echo '<div class="wrap onyio-wrap">';
+		echo '<h1 class="onyio-title">' . esc_html__( 'Onylogy Image Optimizer', 'onylogy-image-optimizer' );
+		echo ' <a class="onyio-badge" href="https://github.com/ehasan28" target="_blank" rel="noopener noreferrer">' . esc_html__( 'ehasan28 on GitHub', 'onylogy-image-optimizer' ) . '</a></h1>';
+		echo '<p class="onyio-tagline">' . esc_html__( 'Compress, resize and convert your whole Media Library — all in your browser, no cloud, no per-image cost.', 'onylogy-image-optimizer' ) . '</p>';
+		echo '<div id="onyio-app"></div>';
 		echo '</div>';
 	}
 }

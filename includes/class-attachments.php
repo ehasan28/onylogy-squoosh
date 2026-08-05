@@ -2,9 +2,9 @@
 /**
  * Reads attachments and resolves the concrete on-disk size files (full plus
  * every intermediate thumbnail) that the optimizer works on. Also owns the
- * per-attachment optimization record stored in the `_ois_data` post meta.
+ * per-attachment optimization record stored in the `_onyio_data` post meta.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -12,9 +12,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Attachment helper.
  */
-class OIS_Attachments {
+class ONYIO_Attachments {
 
-	const META_KEY = '_ois_data';
+	const META_KEY = '_onyio_data';
 
 	/**
 	 * Formats we can decode+re-encode. gif/svg are skipped.

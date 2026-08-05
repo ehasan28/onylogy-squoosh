@@ -1,9 +1,9 @@
 /**
  * Static admin styles. The page title, badge and tagline are styled with the
  * Onylogy Design System tokens in the bundled build/index.css (scoped to
- * .ois-wrap). This file is intentionally minimal.
+ * .onyio-wrap). This file is intentionally minimal.
  */
 
-.ois-wrap {
+.onyio-wrap {
 	margin-top: 8px;
 }

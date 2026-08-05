@@ -1,6 +1,6 @@
 /**
- * Onylogy Squeeze — admin entry point. Mounts the React workbench into
- * the #ois-app node printed by the PHP admin page.
+ * Onylogy Image Optimizer — admin entry point. Mounts the React workbench
+ * into the #onyio-app node printed by the PHP admin page.
  */
 
 import { createRoot } from '@wordpress/element';
@@ -8,7 +8,7 @@ import App from './app.js';
 import './index.css';
 
 function boot() {
-	const mount = document.getElementById( 'ois-app' );
+	const mount = document.getElementById( 'onyio-app' );
 	if ( ! mount ) {
 		return;
 	}

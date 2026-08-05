@@ -1,8 +1,8 @@
 /**
  * Settings panel — reads the localized settings, saves via REST, and updates
- * window.OIS.settings so the runner picks up changes immediately.
+ * window.ONYIO.settings so the runner picks up changes immediately.
  *
- * Rebuilt with the Onylogy Squeeze design system: format chips (multi-select
+ * Rebuilt with the Onylogy design system: format chips (multi-select
  * — this plugin auto-picks whichever enabled format comes out smallest, so
  * more than one can be active at once, unlike the desktop/web app's
  * single-select "convert to this one format" chips) and a resize-preset
@@ -19,14 +19,14 @@ import Toast from './Toast.js';
 // as the desktop/web app's resize presets, based on WordPress core's own
 // default image sizes.
 const RESIZE_PRESETS = [
-	{ key: 'off', label: __( 'Off — never resize', 'onylogy-squeeze' ), value: 0 },
-	{ key: 'thumbnail', label: __( 'Thumbnail (150px)', 'onylogy-squeeze' ), value: 150 },
-	{ key: 'medium', label: __( 'Medium (300px)', 'onylogy-squeeze' ), value: 300 },
-	{ key: 'medium_large', label: __( 'Medium Large (768px)', 'onylogy-squeeze' ), value: 768 },
-	{ key: 'large', label: __( 'Large (1024px)', 'onylogy-squeeze' ), value: 1024 },
-	{ key: 'xlarge', label: __( 'Extra Large (1600px)', 'onylogy-squeeze' ), value: 1600 },
-	{ key: 'max', label: __( 'Max (2560px)', 'onylogy-squeeze' ), value: 2560 },
-	{ key: 'custom', label: __( 'Custom', 'onylogy-squeeze' ), value: -1 },
+	{ key: 'off', label: __( 'Off — never resize', 'onylogy-image-optimizer' ), value: 0 },
+	{ key: 'thumbnail', label: __( 'Thumbnail (150px)', 'onylogy-image-optimizer' ), value: 150 },
+	{ key: 'medium', label: __( 'Medium (300px)', 'onylogy-image-optimizer' ), value: 300 },
+	{ key: 'medium_large', label: __( 'Medium Large (768px)', 'onylogy-image-optimizer' ), value: 768 },
+	{ key: 'large', label: __( 'Large (1024px)', 'onylogy-image-optimizer' ), value: 1024 },
+	{ key: 'xlarge', label: __( 'Extra Large (1600px)', 'onylogy-image-optimizer' ), value: 1600 },
+	{ key: 'max', label: __( 'Max (2560px)', 'onylogy-image-optimizer' ), value: 2560 },
+	{ key: 'custom', label: __( 'Custom', 'onylogy-image-optimizer' ), value: -1 },
 ];
 
 function presetKeyFor( value ) {
@@ -35,7 +35,7 @@ function presetKeyFor( value ) {
 }
 
 export default function Settings( { onSaved } ) {
-	const initial = ( window.OIS && window.OIS.settings ) || {};
+	const initial = ( window.ONYIO && window.ONYIO.settings ) || {};
 	const [ form, setForm ] = useState( {
 		quality: initial.quality ?? 80,
 		webp: !! initial.webp,
@@ -55,28 +55,28 @@ export default function Settings( { onSaved } ) {
 	const save = async () => {
 		setStatus( 'saving' );
 		try {
-			const saved = await apiFetch( { path: '/ois/v1/settings', method: 'POST', data: form } );
-			window.OIS.settings = { ...window.OIS.settings, ...saved };
+			const saved = await apiFetch( { path: '/onyio/v1/settings', method: 'POST', data: form } );
+			window.ONYIO.settings = { ...window.ONYIO.settings, ...saved };
 			setStatus( 'saved' );
-			setToast( __( 'Settings saved', 'onylogy-squeeze' ) );
+			setToast( __( 'Settings saved', 'onylogy-image-optimizer' ) );
 			if ( onSaved ) {
 				onSaved( saved );
 			}
 			setTimeout( () => setStatus( '' ), 2000 );
 		} catch ( e ) {
 			setStatus( 'error' );
-			setToast( __( 'Could not save settings', 'onylogy-squeeze' ) );
+			setToast( __( 'Could not save settings', 'onylogy-image-optimizer' ) );
 		}
 	};
 
 	const presetKey = presetKeyFor( form.resizeMax );
 
 	return (
-		<div className="ois-settings">
-			<div className="ois-set-row">
-				<label className="ois-set-label">
-					{ __( 'Compression quality', 'onylogy-squeeze' ) }
-					<span className="ois-set-value">{ form.quality }%</span>
+		<div className="onyio-settings">
+			<div className="onyio-set-row">
+				<label className="onyio-set-label">
+					{ __( 'Compression quality', 'onylogy-image-optimizer' ) }
+					<span className="onyio-set-value">{ form.quality }%</span>
 				</label>
 				<input
 					type="range"
@@ -85,17 +85,17 @@ export default function Settings( { onSaved } ) {
 					value={ form.quality }
 					onChange={ ( e ) => set( { quality: parseInt( e.target.value, 10 ) } ) }
 				/>
-				<p className="ois-set-hint">
-					{ __( 'Applies to recompressing the image in its own format. 80 is a good balance of size and quality.', 'onylogy-squeeze' ) }
+				<p className="onyio-set-hint">
+					{ __( 'Applies to recompressing the image in its own format. 80 is a good balance of size and quality.', 'onylogy-image-optimizer' ) }
 				</p>
 			</div>
 
-			<div className="ois-set-row">
-				<label className="ois-set-label">{ __( 'Also try these formats', 'onylogy-squeeze' ) }</label>
-				<div className="ois-format-chip-row">
+			<div className="onyio-set-row">
+				<label className="onyio-set-label">{ __( 'Also try these formats', 'onylogy-image-optimizer' ) }</label>
+				<div className="onyio-format-chip-row">
 					<button
 						type="button"
-						className={ 'ois-format-chip' + ( form.webp ? ' is-active' : '' ) }
+						className={ 'onyio-format-chip' + ( form.webp ? ' is-active' : '' ) }
 						data-format="webp"
 						onClick={ () => toggleFormat( 'webp' ) }
 					>
@@ -103,22 +103,22 @@ export default function Settings( { onSaved } ) {
 					</button>
 					<button
 						type="button"
-						className={ 'ois-format-chip' + ( form.avif ? ' is-active' : '' ) }
+						className={ 'onyio-format-chip' + ( form.avif ? ' is-active' : '' ) }
 						data-format="avif"
 						onClick={ () => toggleFormat( 'avif' ) }
 					>
 						AVIF
 					</button>
 				</div>
-				<p className="ois-set-hint">
-					{ __( 'For each image, every enabled format is tried and whichever comes out smallest replaces the file in your Media Library — so your theme, page builder and everything else serves it automatically. No front-end setup needed.', 'onylogy-squeeze' ) }
+				<p className="onyio-set-hint">
+					{ __( 'For each image, every enabled format is tried and whichever comes out smallest replaces the file in your Media Library — so your theme, page builder and everything else serves it automatically. No front-end setup needed.', 'onylogy-image-optimizer' ) }
 				</p>
 
 				{ form.avif && (
-					<div className="ois-quality-sub">
-						<label className="ois-set-label">
-							{ __( 'AVIF quality', 'onylogy-squeeze' ) }
-							<span className="ois-set-value">{ form.avifQuality }%</span>
+					<div className="onyio-quality-sub">
+						<label className="onyio-set-label">
+							{ __( 'AVIF quality', 'onylogy-image-optimizer' ) }
+							<span className="onyio-set-value">{ form.avifQuality }%</span>
 						</label>
 						<input
 							type="range"
@@ -127,24 +127,24 @@ export default function Settings( { onSaved } ) {
 							value={ form.avifQuality }
 							onChange={ ( e ) => set( { avifQuality: parseInt( e.target.value, 10 ) } ) }
 						/>
-						<p className="ois-set-hint">{ __( 'AVIF looks right at a lower number than JPEG/WebP — 55 is a good starting point.', 'onylogy-squeeze' ) }</p>
+						<p className="onyio-set-hint">{ __( 'AVIF looks right at a lower number than JPEG/WebP — 55 is a good starting point.', 'onylogy-image-optimizer' ) }</p>
 					</div>
 				) }
 			</div>
 
-			<div className="ois-set-row ois-set-row--check">
+			<div className="onyio-set-row onyio-set-row--check">
 				<label>
 					<input
 						type="checkbox"
 						checked={ form.autoOnUpload }
 						onChange={ ( e ) => set( { autoOnUpload: e.target.checked } ) }
 					/>
-					{ __( 'Automatically optimize new uploads', 'onylogy-squeeze' ) }
+					{ __( 'Automatically optimize new uploads', 'onylogy-image-optimizer' ) }
 				</label>
 			</div>
 
-			<div className="ois-set-row">
-				<label className="ois-set-label">{ __( 'Resize large images to', 'onylogy-squeeze' ) }</label>
+			<div className="onyio-set-row">
+				<label className="onyio-set-label">{ __( 'Resize large images to', 'onylogy-image-optimizer' ) }</label>
 				<select
 					value={ presetKey }
 					onChange={ ( e ) => {
@@ -170,28 +170,28 @@ export default function Settings( { onSaved } ) {
 						style={ { marginTop: '8px' } }
 					/>
 				) }
-				<p className="ois-set-hint">
-					{ __( 'Applies to the full-size image only (thumbnails are unaffected). Never upscales.', 'onylogy-squeeze' ) }
+				<p className="onyio-set-hint">
+					{ __( 'Applies to the full-size image only (thumbnails are unaffected). Never upscales.', 'onylogy-image-optimizer' ) }
 				</p>
 			</div>
 
-			<div className="ois-set-row ois-set-row--check">
+			<div className="onyio-set-row onyio-set-row--check">
 				<label>
 					<input
 						type="checkbox"
 						checked={ form.backup }
 						onChange={ ( e ) => set( { backup: e.target.checked } ) }
 					/>
-					{ __( 'Keep a backup of originals so I can restore', 'onylogy-squeeze' ) }
+					{ __( 'Keep a backup of originals so I can restore', 'onylogy-image-optimizer' ) }
 				</label>
-				<p className="ois-set-hint">
-					{ __( 'Optimizing replaces the file in your Media Library (e.g. photo.png becomes photo.webp). The backup is what lets you undo that — without it, "Restore original" has nothing to restore from.', 'onylogy-squeeze' ) }
+				<p className="onyio-set-hint">
+					{ __( 'Optimizing replaces the file in your Media Library (e.g. photo.png becomes photo.webp). The backup is what lets you undo that — without it, "Restore original" has nothing to restore from.', 'onylogy-image-optimizer' ) }
 				</p>
 			</div>
 
-			<div className="ois-set-actions">
+			<div className="onyio-set-actions">
 				<button type="button" className="button button-primary" onClick={ save } disabled={ status === 'saving' }>
-					{ status === 'saving' ? __( 'Saving…', 'onylogy-squeeze' ) : __( 'Save settings', 'onylogy-squeeze' ) }
+					{ status === 'saving' ? __( 'Saving…', 'onylogy-image-optimizer' ) : __( 'Save settings', 'onylogy-image-optimizer' ) }
 				</button>
 			</div>
 

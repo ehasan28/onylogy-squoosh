@@ -4,7 +4,7 @@
  * camelCase names the JS reads, so there is no server/client mapping to keep in
  * sync.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -12,9 +12,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Settings handler.
  */
-class OIS_Settings {
+class ONYIO_Settings {
 
-	const OPTION_KEY = 'ois_settings';
+	const OPTION_KEY = 'onyio_settings';
 
 	/**
 	 * Cached settings.

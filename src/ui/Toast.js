@@ -13,5 +13,5 @@ export default function Toast( { message, onDone } ) {
 	if ( ! message ) {
 		return null;
 	}
-	return <div className="ois-toast">{ message }</div>;
+	return <div className="onyio-toast">{ message }</div>;
 }

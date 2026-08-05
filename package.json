@@ -1,6 +1,6 @@
 {
   "name": "onylogy-squeeze-wp",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Compress and convert images (JPG, PNG, WebP, AVIF) client-side inside wp-admin via WebAssembly codecs.",
   "author": "Ehasanul Haque",
   "license": "GPL-2.0-or-later",

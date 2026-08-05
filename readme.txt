@@ -1,10 +1,10 @@
-=== Onylogy Squeeze ===
+=== Onylogy Image Optimizer ===
 Contributors: ehasan28
 Tags: image optimization, compress images, webp, avif, lazy optimize
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 3.0.0
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,9 +12,11 @@ Compress, resize and convert your Media Library to WebP/AVIF — all in your bro
 
 == Description ==
 
-Onylogy Squeeze optimizes the images already in your Media Library and every new one you upload — just like Smush, ShortPixel or Imagify, but with one big difference: **the compression runs in your browser using WebAssembly**, not on a paid cloud service and not on your host's PHP image library.
+Onylogy Image Optimizer optimizes the images already in your Media Library and every new one you upload — just like Smush, ShortPixel or Imagify, but with one big difference: **the compression runs in your browser using WebAssembly**, not on a paid cloud service and not on your host's PHP image library.
 
 That means Squoosh-level quality (mozjpeg, oxipng, WebP, AVIF) that works the same on *every* host, with nothing ever leaving your site and no ongoing cost.
+
+**Source code:** the full source, including all build tools, is public at https://github.com/ehasan28/onylogy-squeeze-wp
 
 **What it does**
 
@@ -29,13 +31,13 @@ That means Squoosh-level quality (mozjpeg, oxipng, WebP, AVIF) that works the sa
 
 Bulk-optimizing a large *existing* library runs in your browser, so keep the tab open until it finishes (exactly like Smush's Bulk Smush). New uploads are optimized instantly. The server never encodes an image — it only backs up the original, then writes whichever result the browser decided is smallest as the attachment's own file (updating its filename, MIME type, and WordPress metadata to match). That's why it behaves identically on every host, and why every consumer of the Media Library — theme, block editor, or page builder — sees the optimized file with zero extra configuration.
 
-**A note on browser support:** replacing an original with WebP/AVIF means very old browsers (IE11, iOS ≤ 13 Safari) would see a broken image if they ever request that file directly. This is an intentionally small, shrinking slice of traffic in 2026; if you need to guarantee support for those browsers specifically, turn off WebP/AVIF conversion in Settings and Squeeze will still recompress in the original format.
+**A note on browser support:** replacing an original with WebP/AVIF means very old browsers (IE11, iOS ≤ 13 Safari) would see a broken image if they ever request that file directly. This is an intentionally small, shrinking slice of traffic in 2026; if you need to guarantee support for those browsers specifically, turn off WebP/AVIF conversion in Settings and the plugin will still recompress in the original format.
 
 == Installation ==
 
-1. Upload the `onylogy-squeeze` folder to `/wp-content/plugins/`, or install the zip via Plugins → Add New → Upload.
+1. Upload the `onylogy-image-optimizer` folder to `/wp-content/plugins/`, or install the zip via Plugins → Add New → Upload.
 2. Activate the plugin.
-3. Go to **Media → Squeeze** and click **Optimize all**. New uploads are handled automatically.
+3. Go to **Media → Image Optimizer** and click **Optimize all**. New uploads are handled automatically.
 
 == Frequently Asked Questions ==
 
@@ -53,13 +55,18 @@ Yes. Every original is backed up *before* the first change to that image, which 
 
 = Why does my PNG show up as a .webp file in the Media Library? =
 
-That's the point, not a bug: when converting to WebP makes the file smaller, Squeeze replaces the attachment's own file (and updates its WordPress metadata to match) rather than creating a separate "sibling" file next to it. That's what makes it work automatically with page builders like Elementor or Divi — they just render whatever file the Media Library says is there.
+That's the point, not a bug: when converting to WebP makes the file smaller, the plugin replaces the attachment's own file (and updates its WordPress metadata to match) rather than creating a separate "sibling" file next to it. That's what makes it work automatically with page builders like Elementor or Divi — they just render whatever file the Media Library says is there.
 
 = Why does the big bulk run need the tab open? =
 
 Because the compression happens in your browser, not on a remote server. This is the same trade-off as Smush's Bulk Smush — and it's what keeps the plugin free, private, and host-independent.
 
 == Changelog ==
+
+= 3.1.0 =
+* Renamed to Onylogy Image Optimizer (from Onylogy Squeeze) and switched internal prefixes/namespace to `onyio`/`ONYIO`.
+* REST endpoints that act on a single attachment (fetch item, store, record, complete, restore) now also verify the current user can edit that specific attachment, not just that they hold the general `upload_files` capability.
+* The queue and stats endpoints now require `edit_others_posts`, so a Contributor/Author who can only upload their own media can no longer see or process the whole library's pending items.
 
 = 3.0.0 =
 * Dashboard and Settings rebuilt on the Onylogy design system (format chips, resize presets, toast notifications) in place of bare admin form controls.

@@ -10,7 +10,7 @@
  *     rewriting needed),
  *   - records savings, and restores from backup.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,27 +18,27 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Optimizer (storage side).
  */
-class OIS_Optimizer {
+class ONYIO_Optimizer {
 
 	/**
 	 * Settings.
 	 *
-	 * @var OIS_Settings
+	 * @var ONYIO_Settings
 	 */
 	private $settings;
 
 	/**
 	 * Attachments helper.
 	 *
-	 * @var OIS_Attachments
+	 * @var ONYIO_Attachments
 	 */
 	private $attachments;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param OIS_Settings    $settings    Settings.
-	 * @param OIS_Attachments $attachments Attachments helper.
+	 * @param ONYIO_Settings    $settings    Settings.
+	 * @param ONYIO_Attachments $attachments Attachments helper.
 	 */
 	public function __construct( $settings, $attachments ) {
 		$this->settings    = $settings;
@@ -61,7 +61,7 @@ class OIS_Optimizer {
 		}
 		$rec = $this->attachments->record( $attachment_id );
 		if ( empty( $rec['status'] ) ) {
-			update_post_meta( $attachment_id, OIS_Attachments::META_KEY, array( 'status' => 'pending' ) );
+			update_post_meta( $attachment_id, ONYIO_Attachments::META_KEY, array( 'status' => 'pending' ) );
 		}
 		return $metadata;
 	}
@@ -85,7 +85,7 @@ class OIS_Optimizer {
 	 */
 	private function backup_dir( $attachment_id ) {
 		$uploads = wp_get_upload_dir();
-		return trailingslashit( $uploads['basedir'] ) . 'ois-backups/' . $attachment_id . '/';
+		return trailingslashit( $uploads['basedir'] ) . 'onyio-backups/' . $attachment_id . '/';
 	}
 
 	/**
@@ -150,7 +150,7 @@ class OIS_Optimizer {
 	public function store( $attachment_id, $size, $format, $tmp, $width, $height, $original_size ) {
 		$paths = $this->attachments->allowed_paths( $attachment_id );
 		if ( ! isset( $paths[ $size ] ) ) {
-			return new WP_Error( 'ois_bad_size', 'Unknown size for this attachment.', array( 'status' => 400 ) );
+			return new WP_Error( 'onyio_bad_size', 'Unknown size for this attachment.', array( 'status' => 400 ) );
 		}
 		$old_path  = $paths[ $size ];
 		$new_bytes = (int) @filesize( $tmp );
@@ -170,7 +170,7 @@ class OIS_Optimizer {
 		$new_path = trailingslashit( dirname( $old_path ) ) . pathinfo( $old_path, PATHINFO_FILENAME ) . '.' . $new_ext;
 
 		if ( ! $this->write_file( $tmp, $new_path ) ) {
-			return new WP_Error( 'ois_write', 'Could not write optimized file.', array( 'status' => 500 ) );
+			return new WP_Error( 'onyio_write', 'Could not write optimized file.', array( 'status' => 500 ) );
 		}
 		if ( $new_path !== $old_path && file_exists( $old_path ) ) {
 			wp_delete_file( $old_path );
@@ -212,7 +212,7 @@ class OIS_Optimizer {
 		}
 		$rec['files'][ $size ]['o'] = max( isset( $rec['files'][ $size ]['o'] ) ? (int) $rec['files'][ $size ]['o'] : 0, (int) $original_size );
 		$rec['files'][ $size ]['n'] = $new_bytes;
-		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
+		update_post_meta( $attachment_id, ONYIO_Attachments::META_KEY, $rec );
 
 		return array(
 			'saved'   => max( 0, (int) $original_size - $new_bytes ),
@@ -237,7 +237,7 @@ class OIS_Optimizer {
 			isset( $rec['files'][ $size ]['o'] ) ? (int) $rec['files'][ $size ]['o'] : 0,
 			(int) $original_size
 		);
-		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
+		update_post_meta( $attachment_id, ONYIO_Attachments::META_KEY, $rec );
 	}
 
 	/**
@@ -263,7 +263,7 @@ class OIS_Optimizer {
 		$rec['optimized'] = $opt;
 		$rec['saved']     = max( 0, $orig - $opt );
 		$rec['status']    = 'done';
-		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
+		update_post_meta( $attachment_id, ONYIO_Attachments::META_KEY, $rec );
 		return $rec;
 	}
 
@@ -308,7 +308,7 @@ class OIS_Optimizer {
 			wp_update_attachment_metadata( $attachment_id, $rec['meta_backup'] );
 		}
 
-		delete_post_meta( $attachment_id, OIS_Attachments::META_KEY );
+		delete_post_meta( $attachment_id, ONYIO_Attachments::META_KEY );
 		return true;
 	}
 
@@ -325,7 +325,7 @@ class OIS_Optimizer {
 		$rec['meta_backup']      = wp_get_attachment_metadata( $attachment_id );
 		$rec['mime_backup']      = get_post_field( 'post_mime_type', $attachment_id );
 		$rec['attached_backup']  = get_post_meta( $attachment_id, '_wp_attached_file', true );
-		update_post_meta( $attachment_id, OIS_Attachments::META_KEY, $rec );
+		update_post_meta( $attachment_id, ONYIO_Attachments::META_KEY, $rec );
 
 		$dir = $this->backup_dir( $attachment_id );
 		wp_mkdir_p( $dir );

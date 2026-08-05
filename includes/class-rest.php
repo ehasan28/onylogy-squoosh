@@ -1,10 +1,10 @@
 <?php
 /**
- * REST API (namespace ois/v1). The browser drives everything through here:
+ * REST API (namespace onyio/v1). The browser drives everything through here:
  * pull the queue, upload optimized bytes, mark attachments complete, restore,
  * read stats, and read/write settings.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -12,37 +12,37 @@ defined( 'ABSPATH' ) || exit;
 /**
  * REST controller.
  */
-class OIS_REST {
+class ONYIO_REST {
 
-	const NS = 'ois/v1';
+	const NS = 'onyio/v1';
 
 	/**
 	 * Settings.
 	 *
-	 * @var OIS_Settings
+	 * @var ONYIO_Settings
 	 */
 	private $settings;
 
 	/**
 	 * Attachments helper.
 	 *
-	 * @var OIS_Attachments
+	 * @var ONYIO_Attachments
 	 */
 	private $attachments;
 
 	/**
 	 * Optimizer.
 	 *
-	 * @var OIS_Optimizer
+	 * @var ONYIO_Optimizer
 	 */
 	private $optimizer;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param OIS_Settings    $settings    Settings.
-	 * @param OIS_Attachments $attachments Attachments helper.
-	 * @param OIS_Optimizer   $optimizer   Optimizer.
+	 * @param ONYIO_Settings    $settings    Settings.
+	 * @param ONYIO_Attachments $attachments Attachments helper.
+	 * @param ONYIO_Optimizer   $optimizer   Optimizer.
 	 */
 	public function __construct( $settings, $attachments, $optimizer ) {
 		$this->settings    = $settings;
@@ -52,12 +52,45 @@ class OIS_REST {
 	}
 
 	/**
-	 * Capability gate for every route.
+	 * Base capability gate for every route.
 	 *
 	 * @return bool
 	 */
 	public function can() {
 		return current_user_can( 'upload_files' );
+	}
+
+	/**
+	 * Gate for routes that read or act on a single attachment: the base
+	 * capability plus edit access to that specific attachment, so a user
+	 * with only upload_files can't read or modify media they don't own.
+	 * The id is read from the route param (id) or a body param
+	 * (attachment_id), whichever the route uses.
+	 *
+	 * @param WP_REST_Request $req Request.
+	 * @return bool
+	 */
+	public function can_edit_attachment( $req ) {
+		if ( ! $this->can() ) {
+			return false;
+		}
+		$id = (int) $req->get_param( 'attachment_id' );
+		if ( ! $id ) {
+			$id = (int) $req->get_param( 'id' );
+		}
+		return $id > 0 && current_user_can( 'edit_post', $id );
+	}
+
+	/**
+	 * Gate for routes that expose or affect the whole library rather than a
+	 * single attachment (the queue and aggregate stats): require
+	 * edit_others_posts so a Contributor/Author with only upload_files can't
+	 * enumerate or see totals for attachments that aren't theirs.
+	 *
+	 * @return bool
+	 */
+	public function can_manage_library() {
+		return $this->can() && current_user_can( 'edit_others_posts' );
 	}
 
 	/**
@@ -68,37 +101,37 @@ class OIS_REST {
 
 		register_rest_route( self::NS, '/queue', array(
 			'methods'             => 'GET',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_manage_library' ),
 			'callback'            => array( $this, 'queue' ),
 		) );
 		register_rest_route( self::NS, '/item/(?P<id>\d+)', array(
 			'methods'             => 'GET',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_edit_attachment' ),
 			'callback'            => array( $this, 'item' ),
 		) );
 		register_rest_route( self::NS, '/store', array(
 			'methods'             => 'POST',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_edit_attachment' ),
 			'callback'            => array( $this, 'store' ),
 		) );
 		register_rest_route( self::NS, '/record', array(
 			'methods'             => 'POST',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_edit_attachment' ),
 			'callback'            => array( $this, 'record' ),
 		) );
 		register_rest_route( self::NS, '/complete', array(
 			'methods'             => 'POST',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_edit_attachment' ),
 			'callback'            => array( $this, 'complete' ),
 		) );
 		register_rest_route( self::NS, '/restore', array(
 			'methods'             => 'POST',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_edit_attachment' ),
 			'callback'            => array( $this, 'restore' ),
 		) );
 		register_rest_route( self::NS, '/stats', array(
 			'methods'             => 'GET',
-			'permission_callback' => $auth,
+			'permission_callback' => array( $this, 'can_manage_library' ),
 			'callback'            => array( $this, 'stats' ),
 		) );
 		register_rest_route( self::NS, '/settings', array(
@@ -201,14 +234,14 @@ class OIS_REST {
 		$format = sanitize_key( (string) $req->get_param( 'format' ) );
 
 		if ( ! wp_attachment_is_image( $id ) ) {
-			return new WP_Error( 'ois_bad_id', 'Not an image attachment.', array( 'status' => 400 ) );
+			return new WP_Error( 'onyio_bad_id', 'Not an image attachment.', array( 'status' => 400 ) );
 		}
 		if ( ! in_array( $format, array( 'jpeg', 'png', 'webp', 'avif' ), true ) ) {
-			return new WP_Error( 'ois_bad_format', 'Invalid format.', array( 'status' => 400 ) );
+			return new WP_Error( 'onyio_bad_format', 'Invalid format.', array( 'status' => 400 ) );
 		}
 		$files = $req->get_file_params();
 		if ( empty( $files['file']['tmp_name'] ) ) {
-			return new WP_Error( 'ois_no_file', 'No file received.', array( 'status' => 400 ) );
+			return new WP_Error( 'onyio_no_file', 'No file received.', array( 'status' => 400 ) );
 		}
 
 		$result = $this->optimizer->store(

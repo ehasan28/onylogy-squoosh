@@ -6,7 +6,7 @@
  * per-format options objects instead of a single quality number, explicit
  * `sourceFormat`, `decode` for pixels) — see
  * ../worker/squeeze.worker.js. `wasmBase` resolution stays the
- * WordPress-specific line: derived from `self.OIS.pluginUrl` + `build/wasm/`,
+ * WordPress-specific line: derived from `self.ONYIO.pluginUrl` + `build/wasm/`,
  * set by admin/class-admin-page.php's wp_localize_script().
  */
 
@@ -45,11 +45,11 @@ function getWorker() {
 		}
 	};
 
-	// build/wasm/ lives next to the enqueued bundle. OIS.pluginUrl is the
+	// build/wasm/ lives next to the enqueued bundle. ONYIO.pluginUrl is the
 	// plugin root; the build dir is a known child.
 	const base =
-		( typeof self !== 'undefined' && self.OIS && self.OIS.pluginUrl
-			? self.OIS.pluginUrl
+		( typeof self !== 'undefined' && self.ONYIO && self.ONYIO.pluginUrl
+			? self.ONYIO.pluginUrl
 			: '/' ) + 'build/wasm/';
 
 	readyPromise = new Promise( ( resolve ) => {

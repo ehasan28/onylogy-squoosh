@@ -21,10 +21,10 @@
 }
 
 :root {
-	/* Onylogy Design System tokens. On :root (not .ois-wrap) so elements
+	/* Onylogy Design System tokens. On :root (not .onyio-wrap) so elements
 	   this plugin renders outside the dashboard shell — the Grid view
 	   button and the toast, both appended directly on Media Library /
-	   post-edit screens where .ois-wrap never mounts — can use them too. */
+	   post-edit screens where .onyio-wrap never mounts — can use them too. */
 	--color-black: #131513;
 	--color-grey-700: #292929;
 	--color-grey-600: #505050;
@@ -53,12 +53,12 @@
 	--ease: cubic-bezier( 0.2, 0.8, 0.2, 1 );
 }
 
-.ois-wrap {
+.onyio-wrap {
 	font-family: var( --font-body );
 	color: var( --color-black );
 }
 
-.ois-wrap .ois-title {
+.onyio-wrap .onyio-title {
 	font-family: var( --font-heading );
 	font-weight: 700;
 	font-size: 34px;
@@ -68,7 +68,7 @@
 	align-items: center;
 	gap: 12px;
 }
-.ois-wrap .ois-badge {
+.onyio-wrap .onyio-badge {
 	font-family: var( --font-body );
 	font-weight: 600;
 	font-size: 12px;
@@ -81,27 +81,27 @@
 	border-radius: var( --radius-pill );
 	padding: 4px 12px;
 }
-.ois-wrap .ois-tagline {
+.onyio-wrap .onyio-tagline {
 	font-family: var( --font-body );
 	font-size: 16px;
 	color: var( --color-grey-600 );
 	max-width: 640px;
 }
 
-.ois-app {
+.onyio-app {
 	max-width: 920px;
 	margin-top: 8px;
 	font-family: var( --font-body );
 }
 
 /* Tabs */
-.ois-tabs {
+.onyio-tabs {
 	display: flex;
 	gap: 4px;
 	border-bottom: 1px solid var( --color-grey-400 );
 	margin-bottom: 24px;
 }
-.ois-tab {
+.onyio-tab {
 	appearance: none;
 	border: 0;
 	background: none;
@@ -115,36 +115,36 @@
 	margin-bottom: -1px;
 	transition: color var( --ease ) 200ms;
 }
-.ois-tab:hover {
+.onyio-tab:hover {
 	color: var( --color-grey-700 );
 }
-.ois-tab.is-active {
+.onyio-tab.is-active {
 	color: var( --color-black );
 	border-bottom-color: var( --color-blue );
 }
 
-.ois-loading,
-.ois-error {
+.onyio-loading,
+.onyio-error {
 	color: var( --color-grey-600 );
 	font-size: 14px;
 }
-.ois-error {
+.onyio-error {
 	color: var( --color-error );
 }
 
 /* Cards */
-.ois-cards {
+.onyio-cards {
 	display: grid;
 	grid-template-columns: 1.5fr 1fr 1fr 1fr;
 	gap: 16px;
 	margin-bottom: 24px;
 }
 @media ( max-width: 782px ) {
-	.ois-cards {
+	.onyio-cards {
 		grid-template-columns: 1fr 1fr;
 	}
 }
-.ois-card {
+.onyio-card {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
@@ -154,15 +154,15 @@
 	border-radius: var( --radius-md );
 	box-shadow: var( --elev-sm );
 }
-.ois-card--hero {
+.onyio-card--hero {
 	background: var( --color-black );
 	border-color: var( --color-black );
 }
-.ois-card--hero .ois-card__num,
-.ois-card--hero .ois-card__label {
+.onyio-card--hero .onyio-card__num,
+.onyio-card--hero .onyio-card__label {
 	color: var( --color-white );
 }
-.ois-card__num {
+.onyio-card__num {
 	font-family: var( --font-heading );
 	font-size: 28px;
 	font-weight: 700;
@@ -171,12 +171,12 @@
 	color: var( --color-black );
 	font-variant-numeric: tabular-nums;
 }
-.ois-card__label {
+.onyio-card__label {
 	font-size: 12px;
 	font-weight: 500;
 	color: var( --color-grey-500 );
 }
-.ois-card__sub {
+.onyio-card__sub {
 	font-size: 12px;
 	font-weight: 600;
 	color: #7fd08a;
@@ -184,7 +184,7 @@
 }
 
 /* Run / progress */
-.ois-run {
+.onyio-run {
 	background: var( --color-white );
 	border: 1px solid var( --color-grey-400 );
 	border-radius: var( --radius-md );
@@ -192,20 +192,20 @@
 	padding: 20px 24px;
 	margin-bottom: 16px;
 }
-.ois-progress {
+.onyio-progress {
 	position: relative;
 	height: 24px;
 	background: var( --color-grey-300 );
 	border-radius: var( --radius-pill );
 	overflow: hidden;
 }
-.ois-progress__fill {
+.onyio-progress__fill {
 	height: 100%;
 	background: var( --color-blue );
 	border-radius: var( --radius-pill );
 	transition: width 240ms var( --ease );
 }
-.ois-progress__label {
+.onyio-progress__label {
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -214,17 +214,17 @@
 	font-weight: 700;
 	color: var( --color-white );
 }
-.ois-run__meta {
+.onyio-run__meta {
 	display: flex;
 	justify-content: space-between;
 	margin-top: 12px;
 	font-size: 13px;
 	color: var( --color-grey-600 );
 }
-.ois-run__saved strong {
+.onyio-run__saved strong {
 	color: var( --color-black );
 }
-.ois-run__current {
+.onyio-run__current {
 	margin: 8px 0 0;
 	font-size: 12px;
 	color: var( --color-grey-500 );
@@ -234,46 +234,46 @@
 }
 
 /* Buttons — override WP admin buttons inside our app to the brand palette. */
-.ois-app .button {
+.onyio-app .button {
 	font-family: var( --font-body );
 	font-weight: 600;
 	border-radius: var( --radius-sm );
 	transition: background 200ms var( --ease ), border-color 200ms var( --ease );
 }
-.ois-app .button-primary,
-.ois-app .button-hero.button-primary {
+.onyio-app .button-primary,
+.onyio-app .button-hero.button-primary {
 	background: var( --color-blue );
 	border-color: var( --color-blue );
 	color: var( --color-white );
 	text-shadow: none;
 	box-shadow: none;
 }
-.ois-app .button-primary:hover,
-.ois-app .button-hero.button-primary:hover {
+.onyio-app .button-primary:hover,
+.onyio-app .button-hero.button-primary:hover {
 	background: var( --color-blue-strong );
 	border-color: var( --color-blue-strong );
 }
-.ois-app .button-primary:disabled,
-.ois-app .button-primary[disabled] {
+.onyio-app .button-primary:disabled,
+.onyio-app .button-primary[disabled] {
 	background: var( --color-grey-400 ) !important;
 	border-color: var( --color-grey-400 ) !important;
 	color: var( --color-white ) !important;
 }
-.ois-app .button-hero {
+.onyio-app .button-hero {
 	border-radius: var( --radius-md );
 }
 
-.ois-dash__actions {
+.onyio-dash__actions {
 	margin-top: 8px;
 }
-.ois-dash__note {
+.onyio-dash__note {
 	margin: 12px 0 0;
 	font-size: 13px;
 	color: var( --color-grey-600 );
 }
 
 /* Settings */
-.ois-settings {
+.onyio-settings {
 	max-width: 600px;
 	background: var( --color-white );
 	border: 1px solid var( --color-grey-400 );
@@ -281,14 +281,14 @@
 	box-shadow: var( --elev-sm );
 	padding: 24px 28px;
 }
-.ois-set-row {
+.onyio-set-row {
 	padding: 16px 0;
 	border-bottom: 1px solid var( --color-grey-300 );
 }
-.ois-set-row:last-of-type {
+.onyio-set-row:last-of-type {
 	border-bottom: 0;
 }
-.ois-set-label {
+.onyio-set-label {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -296,40 +296,40 @@
 	font-size: 14px;
 	margin-bottom: 8px;
 }
-.ois-set-value {
+.onyio-set-value {
 	font-variant-numeric: tabular-nums;
 	color: var( --color-blue );
 }
-.ois-set-row input[ type='range' ] {
+.onyio-set-row input[ type='range' ] {
 	width: 100%;
 	accent-color: var( --color-blue );
 }
-.ois-set-row input[ type='checkbox' ] {
+.onyio-set-row input[ type='checkbox' ] {
 	accent-color: var( --color-blue );
 }
-.ois-set-row--check label {
+.onyio-set-row--check label {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	font-size: 14px;
 }
-.ois-set-hint {
+.onyio-set-hint {
 	margin: 8px 0 0;
 	font-size: 12px;
 	color: var( --color-grey-500 );
 }
-.ois-set-actions {
+.onyio-set-actions {
 	display: flex;
 	align-items: center;
 	gap: 12px;
 	margin-top: 20px;
 }
-.ois-set-ok {
+.onyio-set-ok {
 	color: var( --color-success );
 	font-size: 13px;
 	font-weight: 600;
 }
-.ois-set-err {
+.onyio-set-err {
 	color: var( --color-error );
 	font-size: 13px;
 	font-weight: 600;
@@ -339,12 +339,12 @@
    enabled format comes out smallest; it isn't the single-select "convert to
    this one format" picker the desktop/web app uses), same visual language:
    bordered pill, border/text tinted to the format's own accent when active. */
-.ois-format-chip-row {
+.onyio-format-chip-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 }
-.ois-format-chip {
+.onyio-format-chip {
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -359,26 +359,26 @@
 	cursor: pointer;
 	transition: background 150ms var( --ease ), border-color 150ms var( --ease ), color 150ms var( --ease );
 }
-.ois-format-chip:hover {
+.onyio-format-chip:hover {
 	border-color: var( --color-grey-500 );
 }
-.ois-format-chip.is-active {
+.onyio-format-chip.is-active {
 	border-color: currentColor;
 }
 /* Fixed literal colors, not theme-shifting tokens — same reasoning as the
    desktop/web app's badge fix: a color meant to look right against ONE
    background (here, always white) shouldn't be derived from a token that
    might change brightness elsewhere. */
-.ois-format-chip[data-format='webp'].is-active { background: #e6f7f3; color: #12836a; }
-.ois-format-chip[data-format='avif'].is-active { background: #f3eafb; color: #7a3fbe; }
-.ois-format-chip[disabled] {
+.onyio-format-chip[data-format='webp'].is-active { background: #e6f7f3; color: #12836a; }
+.onyio-format-chip[data-format='avif'].is-active { background: #f3eafb; color: #7a3fbe; }
+.onyio-format-chip[disabled] {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
 
 /* Quality sub-row for a candidate format — only shown once that format's
    chip is enabled, indented to read as "belongs to" the chip above it. */
-.ois-quality-sub {
+.onyio-quality-sub {
 	margin: 10px 0 0 4px;
 	padding-left: 12px;
 	border-left: 2px solid var( --color-grey-300 );
@@ -389,7 +389,7 @@
    injected client-side — see watchGrid() in auto-upload.js. Hidden until
    hover/focus, matching core's own `.check` selection-checkbox pattern that
    already lives in the same corner of `.attachment-preview`. */
-.ois-grid-action {
+.onyio-grid-action {
 	position: absolute;
 	left: 4px;
 	bottom: 4px;
@@ -406,29 +406,29 @@
 	opacity: 0;
 	transition: opacity 150ms var( --ease );
 }
-.attachment:hover .ois-grid-action,
-.attachment:focus-within .ois-grid-action {
+.attachment:hover .onyio-grid-action,
+.attachment:focus-within .onyio-grid-action {
 	opacity: 1;
 }
-.ois-grid-action.ois-row-optimize {
+.onyio-grid-action.onyio-row-optimize {
 	background: var( --color-blue );
 	color: var( --color-white );
 }
-.ois-grid-action.ois-row-optimize:hover {
+.onyio-grid-action.onyio-row-optimize:hover {
 	background: var( --color-blue-strong );
 }
-.ois-grid-action.ois-row-restore {
+.onyio-grid-action.onyio-row-restore {
 	background: var( --color-white );
 	color: var( --color-grey-700 );
 	box-shadow: var( --elev-sm );
 }
-.ois-grid-action.ois-row-restore:hover {
+.onyio-grid-action.onyio-row-restore:hover {
 	background: var( --color-grey-300 );
 }
 
 /* Toast — fixed to the viewport (unlike the desktop/web app's, which is
    positioned relative to a full-bleed canvas this page doesn't have). */
-.ois-toast {
+.onyio-toast {
 	position: fixed;
 	left: 32px;
 	bottom: 32px;
@@ -441,9 +441,9 @@
 	font-weight: 600;
 	border-radius: var( --radius-sm );
 	box-shadow: var( --elev-md );
-	animation: ois-toast-in 200ms var( --ease );
+	animation: onyio-toast-in 200ms var( --ease );
 }
-@keyframes ois-toast-in {
+@keyframes onyio-toast-in {
 	from { opacity: 0; transform: translateY( 6px ); }
 	to { opacity: 1; transform: translateY( 0 ); }
 }

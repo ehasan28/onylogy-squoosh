@@ -12,15 +12,15 @@ import apiFetch from '@wordpress/api-fetch';
 import { optimize } from './squeeze-client.js';
 import { FORMATS } from './formats.js';
 
-const NS = '/ois/v1';
+const NS = '/onyio/v1';
 
 /**
- * Current plugin settings, localized by PHP as window.OIS.settings.
+ * Current plugin settings, localized by PHP as window.ONYIO.settings.
  *
  * @return {Object} Settings.
  */
 function settings() {
-	return ( typeof window !== 'undefined' && window.OIS && window.OIS.settings ) || {};
+	return ( typeof window !== 'undefined' && window.ONYIO && window.ONYIO.settings ) || {};
 }
 
 /**

@@ -2,7 +2,7 @@
 /**
  * Main plugin bootstrap: loads dependencies and wires up hooks.
  *
- * @package Onylogy_Squeeze
+ * @package Onylogy_Image_Optimizer
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -10,40 +10,40 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Core singleton.
  */
-final class OIS_Plugin {
+final class ONYIO_Plugin {
 
 	/**
 	 * Singleton instance.
 	 *
-	 * @var OIS_Plugin|null
+	 * @var ONYIO_Plugin|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * Settings handler.
 	 *
-	 * @var OIS_Settings
+	 * @var ONYIO_Settings
 	 */
 	public $settings;
 
 	/**
 	 * Attachments helper.
 	 *
-	 * @var OIS_Attachments
+	 * @var ONYIO_Attachments
 	 */
 	public $attachments;
 
 	/**
 	 * Optimizer (storage side).
 	 *
-	 * @var OIS_Optimizer
+	 * @var ONYIO_Optimizer
 	 */
 	public $optimizer;
 
 	/**
 	 * Get the singleton.
 	 *
-	 * @return OIS_Plugin
+	 * @return ONYIO_Plugin
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -65,14 +65,14 @@ final class OIS_Plugin {
 	 * Load class files.
 	 */
 	private function includes() {
-		$inc = OIS_DIR . 'includes/';
+		$inc = ONYIO_DIR . 'includes/';
 		require_once $inc . 'class-settings.php';
 		require_once $inc . 'class-attachments.php';
 		require_once $inc . 'class-optimizer.php';
 		require_once $inc . 'class-rest.php';
 
 		if ( is_admin() ) {
-			require_once OIS_DIR . 'admin/class-admin-page.php';
+			require_once ONYIO_DIR . 'admin/class-admin-page.php';
 		}
 	}
 
@@ -80,14 +80,14 @@ final class OIS_Plugin {
 	 * Instantiate services.
 	 */
 	private function init_services() {
-		$this->settings    = new OIS_Settings();
-		$this->attachments = new OIS_Attachments();
-		$this->optimizer   = new OIS_Optimizer( $this->settings, $this->attachments );
+		$this->settings    = new ONYIO_Settings();
+		$this->attachments = new ONYIO_Attachments();
+		$this->optimizer   = new ONYIO_Optimizer( $this->settings, $this->attachments );
 
-		new OIS_REST( $this->settings, $this->attachments, $this->optimizer );
+		new ONYIO_REST( $this->settings, $this->attachments, $this->optimizer );
 
 		if ( is_admin() ) {
-			new OIS_Admin_Page( $this->settings, $this->attachments );
+			new ONYIO_Admin_Page( $this->settings, $this->attachments );
 		}
 	}
 
@@ -95,7 +95,7 @@ final class OIS_Plugin {
 	 * Register global hooks.
 	 */
 	private function hooks() {
-		add_filter( 'plugin_action_links_' . OIS_BASENAME, array( $this, 'action_links' ) );
+		add_filter( 'plugin_action_links_' . ONYIO_BASENAME, array( $this, 'action_links' ) );
 		add_filter( 'media_row_actions', array( $this, 'row_actions' ), 10, 2 );
 		add_filter( 'wp_prepare_attachment_for_js', array( $this, 'prepare_for_js' ), 10, 2 );
 	}
@@ -107,8 +107,8 @@ final class OIS_Plugin {
 	 * @return array
 	 */
 	public function action_links( $links ) {
-		$url  = admin_url( 'upload.php?page=onylogy-squeeze' );
-		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-squeeze' ) . '</a>';
+		$url  = admin_url( 'upload.php?page=onylogy-image-optimizer' );
+		$link = '<a href="' . esc_url( $url ) . '">' . esc_html__( 'Open', 'onylogy-image-optimizer' ) . '</a>';
 		array_unshift( $links, $link );
 		return $links;
 	}
@@ -125,16 +125,16 @@ final class OIS_Plugin {
 			return $actions;
 		}
 		if ( $this->attachments->is_pending( $post->ID ) ) {
-			$actions['ois_optimize'] = sprintf(
-				'<a href="#" class="ois-row-optimize" data-id="%d">%s</a>',
+			$actions['onyio_optimize'] = sprintf(
+				'<a href="#" class="onyio-row-optimize" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Optimize', 'onylogy-squeeze' )
+				esc_html__( 'Optimize', 'onylogy-image-optimizer' )
 			);
 		} else {
-			$actions['ois_restore'] = sprintf(
-				'<a href="#" class="ois-row-restore" data-id="%d">%s</a>',
+			$actions['onyio_restore'] = sprintf(
+				'<a href="#" class="onyio-row-restore" data-id="%d">%s</a>',
 				$post->ID,
-				esc_html__( 'Restore original', 'onylogy-squeeze' )
+				esc_html__( 'Restore original', 'onylogy-image-optimizer' )
 			);
 		}
 		return $actions;
@@ -152,7 +152,7 @@ final class OIS_Plugin {
 	 */
 	public function prepare_for_js( $response, $attachment ) {
 		if ( wp_attachment_is_image( $attachment->ID ) ) {
-			$response['oisPending'] = $this->attachments->is_pending( $attachment->ID );
+			$response['onyioPending'] = $this->attachments->is_pending( $attachment->ID );
 		}
 		return $response;
 	}
@@ -161,9 +161,9 @@ final class OIS_Plugin {
 	 * Activation: seed defaults.
 	 */
 	public static function activate() {
-		require_once OIS_DIR . 'includes/class-settings.php';
-		if ( false === get_option( OIS_Settings::OPTION_KEY ) ) {
-			add_option( OIS_Settings::OPTION_KEY, OIS_Settings::defaults() );
+		require_once ONYIO_DIR . 'includes/class-settings.php';
+		if ( false === get_option( ONYIO_Settings::OPTION_KEY ) ) {
+			add_option( ONYIO_Settings::OPTION_KEY, ONYIO_Settings::defaults() );
 		}
 	}
 
